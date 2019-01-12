@@ -84,8 +84,6 @@ public class controlMain extends Application implements EventHandler<ActionEvent
         primaryStage.setTitle("Blackmagic HyperDeck Control " + version);
         primaryStage.initStyle(StageStyle.UNDECORATED);
         
-        addHyperdeck("192.168.0.30", true, "Living Room HD");
-        
         makeUI();
         
         mainScene = new Scene(mainLayout, 1600, 900);
@@ -131,7 +129,7 @@ public class controlMain extends Application implements EventHandler<ActionEvent
                 
         topGrid = new GridPane();
         for (int i = 0; i<hyperdecks.size(); i++) {
-            topGrid.add(hyperdecks.get(0).getStackPane(), 0, 0);
+            topGrid.add(hyperdecks.get(i).getStackPane(), i, 0);
             topGrid.getColumnConstraints().addAll(sbarWidth);
         }
         topGrid.getRowConstraints().add(statusBarItemHeight);
@@ -234,7 +232,7 @@ public class controlMain extends Application implements EventHandler<ActionEvent
     
     @Override
     public void onRefresh() {
-        createStatusBar();
+        makeUI();
         //System.out.println("got event");
     }
     
@@ -337,7 +335,7 @@ public class controlMain extends Application implements EventHandler<ActionEvent
         for (int i = 0; i<hb.getChildren().size(); i++) {
             if (hb.getChildren().get(i) instanceof CheckBox) {
                 ((CheckBox)hb.getChildren().get(i)).setFont(prodSansBig);
-                ((CheckBox)hb.getChildren().get(i)).setStyle("-fx-font-size: 27;");
+                ((CheckBox)hb.getChildren().get(i)).setStyle("-fx-font-size: 27;" + "-fx-text-fill: #ebebeb;");
             } else if (hb.getChildren().get(i) instanceof VBox) {
                 for (int j = 0; j<((VBox)hb.getChildren().get(i)).getChildren().size(); j++) {
                     if (((VBox)hb.getChildren().get(i)).getChildren().get(j) instanceof Text) {
@@ -372,7 +370,7 @@ public class controlMain extends Application implements EventHandler<ActionEvent
         fadeInResult.setToValue(1.0);
         PauseTransition pauseAndReset = new PauseTransition(Duration.seconds(0.75));
         pauseAndReset.setOnFinished((e) -> {
-            hyperdecks.add(new Hyperdeck(ipTf.getText(), Integer.parseInt(portTf.getText()), connectCb.isSelected(), nameTf.getText()));
+            addHyperdeck(ipTf.getText(), Integer.parseInt(portTf.getText()), connectCb.isSelected(), nameTf.getText());
             ipTf.setText("");
             portTf.setText("9993");
             nameTf.setText("");
