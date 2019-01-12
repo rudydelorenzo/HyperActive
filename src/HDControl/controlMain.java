@@ -291,5 +291,6 @@ public class controlMain extends Application implements EventHandler<ActionEvent
         HBox hb = new HBox(15);
         
         TextField ipTf = new TextField();
+        TextField portTf = new TextField();
     }
 }
