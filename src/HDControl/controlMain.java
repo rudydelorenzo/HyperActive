@@ -3,16 +3,16 @@ package HDControl;
 import java.io.*;
 import java.net.*;
 import java.util.ArrayList;
-import javafx.animation.ScaleTransition;
+import java.util.Collections;
+import javafx.animation.*;
 import javafx.application.*;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.effect.*;
@@ -55,8 +55,6 @@ public class controlMain extends Application implements EventHandler<ActionEvent
     public static ListView lv;
     public static double xOffset = 0;
     public static double yOffset = 0;
-    public static StackPane buttonAndFill;
-        
     
     public static void main(String[] args) {
         System.setProperty("prism.lcdtext", "false");
@@ -88,10 +86,7 @@ public class controlMain extends Application implements EventHandler<ActionEvent
         
         addHyperdeck("192.168.0.30", true, "Living Room HD");
         
-        createStatusBar();
-        createBottom();
-        createReplayList();
-        createControlButtons();
+        makeUI();
         
         mainScene = new Scene(mainLayout, 1600, 900);
         mainScene.setOnKeyPressed(new EventHandler<KeyEvent>() {
@@ -116,9 +111,14 @@ public class controlMain extends Application implements EventHandler<ActionEvent
                     hyperdecks.get(i).playReplay(selectedRI.getId());
                 }
             }
-        } else if (event.getSource() == addHDButton) {
-            
         }
+    }
+    
+    public void makeUI() {
+        createBottom();
+        createReplayList();
+        createControlButtons();
+        createStatusBar();
     }
     
     public void createStatusBar() {
@@ -302,9 +302,9 @@ public class controlMain extends Application implements EventHandler<ActionEvent
         VBox vbPort = new VBox(7);
         VBox vbName = new VBox(7);
         
-        StackPane parentSb = new StackPane(hb);
-        parentSb.setPadding(new Insets(20));
-        parentSb.setBackground(bottomGray);
+        StackPane parentSp = new StackPane(hb);
+        parentSp.setPadding(new Insets(20));
+        parentSp.setBackground(bottomGray);
         
         Text ipLabel = new Text("IP");
         Text portLabel = new Text("Port");
@@ -313,13 +313,15 @@ public class controlMain extends Application implements EventHandler<ActionEvent
         TextField portTf = new TextField("9993");
         TextField nameTf = new TextField("");
         CheckBox connectCb = new CheckBox("Connect?");
-        buttonAndFill = new StackPane();
+        StackPane buttonAndFill = new StackPane();
         Circle fillCircle = new Circle();
         fillCircle.setRadius(30);
+        fillCircle.setFill(Color.web("#2e7d32"));
         addHDButton = new Button("A");
         addHDButton.setStyle("-fx-background-radius: 5em; " +
                 "-fx-min-width: 70px; " +
                 "-fx-min-height: 70px; ");
+        
         buttonAndFill.getChildren().addAll(fillCircle, addHDButton);
         
         vbIp.getChildren().addAll(ipLabel, ipTf);
@@ -341,6 +343,7 @@ public class controlMain extends Application implements EventHandler<ActionEvent
                     if (((VBox)hb.getChildren().get(i)).getChildren().get(j) instanceof Text) {
                         ((Text)((VBox)hb.getChildren().get(i)).getChildren().get(j)).setFont(prodSansBig);
                         ((Text)((VBox)hb.getChildren().get(i)).getChildren().get(j)).setStyle("-fx-font-size: 21;");
+                        ((Text)((VBox)hb.getChildren().get(i)).getChildren().get(j)).setFill(Color.gray(0.92));
                     } else if (((VBox)hb.getChildren().get(i)).getChildren().get(j) instanceof TextField) {
                         ((TextField)((VBox)hb.getChildren().get(i)).getChildren().get(j)).setFont(prodSansBig);
                         ((TextField)((VBox)hb.getChildren().get(i)).getChildren().get(j)).setStyle("-fx-font-size: 27;");
@@ -350,16 +353,58 @@ public class controlMain extends Application implements EventHandler<ActionEvent
             }
         }
         
+        Text resultLabel = new Text("Hyperdeck added!");
+        resultLabel.setFont(prodSansBig);
+        resultLabel.setStyle("-fx-font-size: 40");
+        resultLabel.setFill(Color.WHITE);
+        resultLabel.setOpacity(0);
+                
         hb.getChildren().add(buttonAndFill);
         
-        ScaleTransition enlarge = new ScaleTransition(Duration.seconds(2), fillCircle);
-        enlarge.setToX(40);
-        enlarge.setToY(40);
+        FadeTransition fadeInCircle = new FadeTransition(Duration.seconds(.1), fillCircle);
+        fadeInCircle.setFromValue(0.0);
+        fadeInCircle.setToValue(1.0);
+        ScaleTransition enlargeCircle = new ScaleTransition(Duration.seconds(0.95), fillCircle);
+        enlargeCircle.setToX(60);
+        enlargeCircle.setToY(60);
+        FadeTransition fadeInResult = new FadeTransition(Duration.seconds(.25), resultLabel);
+        fadeInResult.setFromValue(0.0);
+        fadeInResult.setToValue(1.0);
+        PauseTransition pauseAndReset = new PauseTransition(Duration.seconds(0.75));
+        pauseAndReset.setOnFinished((e) -> {
+            hyperdecks.add(new Hyperdeck(ipTf.getText(), Integer.parseInt(portTf.getText()), connectCb.isSelected(), nameTf.getText()));
+            ipTf.setText("");
+            portTf.setText("9993");
+            nameTf.setText("");
+            connectCb.setSelected(false);
+        });
+        FadeTransition fadeOutResult = new FadeTransition(Duration.seconds(.5), resultLabel);
+        fadeOutResult.setFromValue(1.0);
+        fadeOutResult.setToValue(0.0);
+        FadeTransition fadeOutFill = new FadeTransition(Duration.seconds(.5), fillCircle);
+        fadeOutFill.setFromValue(1.0);
+        fadeOutFill.setToValue(0.0);
+        ParallelTransition pt = new ParallelTransition(fadeOutResult, fadeOutFill);         
+        SequentialTransition st = new SequentialTransition(fadeInCircle, enlargeCircle, fadeInResult, pauseAndReset, pt);
+        st.setOnFinished((e) -> {
+            makeUI();
+        });
+        addHDButton.setOnMouseClicked(new EventHandler<MouseEvent>() {
+            @Override
+            public void handle(MouseEvent event) {
+                ObservableList<Node> workingCollection = FXCollections.observableArrayList(buttonAndFill.getChildren());
+                Collections.swap(workingCollection, 0, 1);
+                buttonAndFill.getChildren().setAll(workingCollection);
+                parentSp.getChildren().add(resultLabel);
+                st.play();
+            }
+        });
         
-        enlarge.play();
+        hb.setStyle("-fx-max-hegiht: 100px; " +
+                "-fx-min-height: 100px; ");
         
         hb.setAlignment(Pos.CENTER);
         
-        mainLayout.setBottom(parentSb);
+        mainLayout.setBottom(parentSp);
     }
 }
