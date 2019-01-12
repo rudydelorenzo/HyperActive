@@ -49,6 +49,7 @@ public class controlMain extends Application implements EventHandler<ActionEvent
     public static ColumnConstraints sbarWidth = new ColumnConstraints();
     public static RowConstraints statusBarItemHeight = new RowConstraints();
     public static DropShadow dropShadow = new DropShadow();
+    public static DropShadow dropShadowBottomOnly = new DropShadow();
     public static Image stopImg, playImg, prevImg, pauseImg, recImg, errImg, shuttleImg, noConnectionImg;
     public static Button s1Button, s2Button, recallButton, saveButton, editButton, deleteButton, playButton, pauseButton, stopButton, nextClip, prevClip, fwdButton, revButton, custom1Button, custom2Button, addHDButton;
     public static ObservableList<ReplayIdentifier> replaysList= FXCollections.observableArrayList();
@@ -56,6 +57,7 @@ public class controlMain extends Application implements EventHandler<ActionEvent
     public static ListView lv;
     public static double xOffset = 0;
     public static double yOffset = 0;
+    public static HBox centerHolder = new HBox(10);
     
     public static void main(String[] args) {
         System.setProperty("prism.lcdtext", "false");
@@ -116,8 +118,8 @@ public class controlMain extends Application implements EventHandler<ActionEvent
     
     public void makeUI() {
         createBottom();
-        createReplayList();
         createControlButtons();
+        createReplayList();
         createStatusBar();
     }
     
@@ -208,7 +210,7 @@ public class controlMain extends Application implements EventHandler<ActionEvent
     
     public void createControlButtons() {
         
-        HBox centerHolder = new HBox(10);
+        centerHolder = new HBox(10);
         
         ColumnConstraints colsLeft = new ColumnConstraints();
         colsLeft.setPercentWidth(100);
@@ -252,6 +254,7 @@ public class controlMain extends Application implements EventHandler<ActionEvent
         
         centerHolder.getChildren().add(leftGrid);
         centerHolder.setBackground(defaultBg);
+        centerHolder.setEffect(dropShadow);
         
         mainLayout.setCenter(centerHolder);
         
@@ -305,8 +308,11 @@ public class controlMain extends Application implements EventHandler<ActionEvent
         spList.setMargin(lv, new Insets(20));
         
         spList.setBackground(defaultBg);
+        //spList.setEffect(dropShadow);
         
-        mainLayout.setLeft(spList);
+        centerHolder.getChildren().add(0, spList);
+        
+        //mainLayout.setLeft(spList);
     }
     
     public void makeReplay() {
@@ -326,6 +332,7 @@ public class controlMain extends Application implements EventHandler<ActionEvent
         VBox vbIp = new VBox(7);
         VBox vbPort = new VBox(7);
         VBox vbName = new VBox(7);
+        VBox vbConnect = new VBox(7);
         
         StackPane parentSp = new StackPane(hb);
         parentSp.setPadding(new Insets(20));
@@ -334,10 +341,11 @@ public class controlMain extends Application implements EventHandler<ActionEvent
         Text ipLabel = new Text("IP");
         Text portLabel = new Text("Port");
         Text nameLabel = new Text("Name");
+        Text connectLabel = new Text("Connect?");
         TextField ipTf = new TextField();
         TextField portTf = new TextField("9993");
         TextField nameTf = new TextField("");
-        CheckBox connectCb = new CheckBox("Connect?");
+        CheckBox connectCb = new CheckBox("");
         StackPane buttonAndFill = new StackPane();
         Circle fillCircle = new Circle();
         fillCircle.setRadius(30);
@@ -345,25 +353,25 @@ public class controlMain extends Application implements EventHandler<ActionEvent
         addHDButton = new Button("A");
         addHDButton.setStyle("-fx-background-radius: 5em; " +
                 "-fx-min-width: 70px; " +
-                "-fx-min-height: 70px; ");
+                "-fx-min-height: 70px; " + 
+                "-fx-background-color: white; ");
+        addHDButton.setEffect(dropShadow);
         
         buttonAndFill.getChildren().addAll(fillCircle, addHDButton);
         
         vbIp.getChildren().addAll(ipLabel, ipTf);
         vbPort.getChildren().addAll(portLabel, portTf);
         vbName.getChildren().addAll(nameLabel, nameTf);
+        vbConnect.getChildren().addAll(connectLabel, connectCb);
         
         hb.getChildren().add(vbIp);
         hb.getChildren().add(vbPort);
         hb.getChildren().add(vbName);
-        hb.getChildren().add(connectCb);
+        hb.getChildren().add(vbConnect);
         
         
         for (int i = 0; i<hb.getChildren().size(); i++) {
-            if (hb.getChildren().get(i) instanceof CheckBox) {
-                ((CheckBox)hb.getChildren().get(i)).setFont(prodSansBig);
-                ((CheckBox)hb.getChildren().get(i)).setStyle("-fx-font-size: 27;" + "-fx-text-fill: #141414;");
-            } else if (hb.getChildren().get(i) instanceof VBox) {
+            if (hb.getChildren().get(i) instanceof VBox) {
                 for (int j = 0; j<((VBox)hb.getChildren().get(i)).getChildren().size(); j++) {
                     if (((VBox)hb.getChildren().get(i)).getChildren().get(j) instanceof Text) {
                         ((Text)((VBox)hb.getChildren().get(i)).getChildren().get(j)).setFont(prodSansBig);
@@ -372,8 +380,11 @@ public class controlMain extends Application implements EventHandler<ActionEvent
                     } else if (((VBox)hb.getChildren().get(i)).getChildren().get(j) instanceof TextField) {
                         ((TextField)((VBox)hb.getChildren().get(i)).getChildren().get(j)).setFont(prodSansBig);
                         ((TextField)((VBox)hb.getChildren().get(i)).getChildren().get(j)).setStyle("-fx-font-size: 27;");
+                    } else if (((VBox)hb.getChildren().get(i)).getChildren().get(j) instanceof CheckBox) {
+                        ((CheckBox)((VBox)hb.getChildren().get(i)).getChildren().get(j)).setFont(prodSansBig);
+                        ((CheckBox)((VBox)hb.getChildren().get(i)).getChildren().get(j)).getStylesheets().add("/CSS/BottomCheckBoxCSS.css");
+                        ((CheckBox)((VBox)hb.getChildren().get(i)).getChildren().get(j)).setStyle("selected-box-color: #1976d2; box-color: white; mark-color: white;");
                     }
-                    
                 }
             }
         }
