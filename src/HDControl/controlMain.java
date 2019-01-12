@@ -17,6 +17,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.effect.*;
 import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
@@ -40,7 +41,7 @@ public class controlMain extends Application implements EventHandler<ActionEvent
     public static Background playBlue = new Background(new BackgroundFill(Color.web("#1976d2"), CornerRadii.EMPTY, Insets.EMPTY));
     public static Background unkPurple = new Background(new BackgroundFill(Color.web("#6a1b9a"), CornerRadii.EMPTY, Insets.EMPTY));
     public static Background stopGray = new Background(new BackgroundFill(Color.web("#757575"), CornerRadii.EMPTY, Insets.EMPTY));
-    public static Background bottomGray = new Background(new BackgroundFill(Color.web("#607d8b"), CornerRadii.EMPTY, Insets.EMPTY));
+    public static Background bottomGray = new Background(new BackgroundFill(Color.web("#b0bec5"), CornerRadii.EMPTY, Insets.EMPTY));
     public static Background defaultBg = new Background(new BackgroundFill(Color.web("#f0f0f0"), CornerRadii.EMPTY, Insets.EMPTY));
     public static Font prodSansBig, prodSansSmall;
     public static BorderPane mainLayout = new BorderPane();
@@ -48,7 +49,7 @@ public class controlMain extends Application implements EventHandler<ActionEvent
     public static ColumnConstraints sbarWidth = new ColumnConstraints();
     public static RowConstraints statusBarItemHeight = new RowConstraints();
     public static DropShadow dropShadow = new DropShadow();
-    public static Image stopImg, playImg, prevImg, pauseImg, recImg, errImg, shuttleImg;
+    public static Image stopImg, playImg, prevImg, pauseImg, recImg, errImg, shuttleImg, noConnectionImg;
     public static Button s1Button, s2Button, recallButton, saveButton, editButton, deleteButton, playButton, pauseButton, stopButton, nextClip, prevClip, fwdButton, revButton, custom1Button, custom2Button, addHDButton;
     public static ObservableList<ReplayIdentifier> replaysList= FXCollections.observableArrayList();
     public static int currId = 0;
@@ -73,6 +74,7 @@ public class controlMain extends Application implements EventHandler<ActionEvent
         pauseImg = new Image("file:images/pause.png");
         errImg = new Image("file:images/err.png");
         shuttleImg = new Image("file:images/shuttle.png");
+        noConnectionImg = new Image("file:images/noconnection2.png");
         
         sbarWidth.setPercentWidth(100);
         launch(args);
@@ -121,17 +123,42 @@ public class controlMain extends Application implements EventHandler<ActionEvent
     
     public void createStatusBar() {
         
-        //System.out.println("CREATE SB FUNCTION RUN");
-                
         sbarWidth.setPercentWidth(100);
         
         statusBarItemHeight.setPrefHeight(100);
                 
         topGrid = new GridPane();
-        for (int i = 0; i<hyperdecks.size(); i++) {
-            topGrid.add(hyperdecks.get(i).getStackPane(), i, 0);
+        if (hyperdecks.isEmpty()) {
+            Label nohdlabel = new Label("No hyperdecks connected.".toUpperCase());
+            Label connectBelowLabel = new Label("Connect one below.".toUpperCase());
+            nohdlabel.setFont(prodSansBig);
+            connectBelowLabel.setFont(prodSansSmall);
+            VBox vb = new VBox(nohdlabel);
+            vb.getChildren().add(connectBelowLabel);
+            ImageView iv = new ImageView();
+            iv.setPreserveRatio(true);
+            iv.setFitHeight(70);
+            HBox hb = new HBox(15);
+            hb.getChildren().add(iv);
+            hb.getChildren().add(vb);
+            StackPane sp = new StackPane(hb);
+
+            sp.setMargin(hb, new Insets(12));
+            sp.setBackground(unkPurple);
+            nohdlabel.setTextFill(Color.WHITE);
+            connectBelowLabel.setTextFill(Color.WHITE);
+            iv.setImage(noConnectionImg);
+
+            sp.setAlignment(Pos.CENTER_LEFT);
+            topGrid.add(sp, 0, 0);
             topGrid.getColumnConstraints().addAll(sbarWidth);
+        } else {
+            for (int i = 0; i<hyperdecks.size(); i++) {
+                topGrid.add(hyperdecks.get(i).getStackPane(), i, 0);
+                topGrid.getColumnConstraints().addAll(sbarWidth);
+            }
         }
+        
         topGrid.getRowConstraints().add(statusBarItemHeight);
         //topGrid.setGridLinesVisible(true);
         topGrid.setAlignment(Pos.CENTER);
@@ -220,7 +247,7 @@ public class controlMain extends Application implements EventHandler<ActionEvent
         
         leftGrid.getColumnConstraints().add(colsLeft);
         leftGrid.getColumnConstraints().add(colsLeft);
-        //leftGrid.setGridLinesVisible(true);
+        leftGrid.setPadding(new Insets(30,0,30,0));
         leftGrid.setAlignment(Pos.CENTER);
         
         centerHolder.getChildren().add(leftGrid);
@@ -232,7 +259,7 @@ public class controlMain extends Application implements EventHandler<ActionEvent
     
     @Override
     public void onRefresh() {
-        makeUI();
+        createStatusBar();
         //System.out.println("got event");
     }
     
@@ -314,7 +341,7 @@ public class controlMain extends Application implements EventHandler<ActionEvent
         StackPane buttonAndFill = new StackPane();
         Circle fillCircle = new Circle();
         fillCircle.setRadius(30);
-        fillCircle.setFill(Color.web("#2e7d32"));
+        fillCircle.setFill(Color.web("#00796b"));
         addHDButton = new Button("A");
         addHDButton.setStyle("-fx-background-radius: 5em; " +
                 "-fx-min-width: 70px; " +
@@ -335,13 +362,13 @@ public class controlMain extends Application implements EventHandler<ActionEvent
         for (int i = 0; i<hb.getChildren().size(); i++) {
             if (hb.getChildren().get(i) instanceof CheckBox) {
                 ((CheckBox)hb.getChildren().get(i)).setFont(prodSansBig);
-                ((CheckBox)hb.getChildren().get(i)).setStyle("-fx-font-size: 27;" + "-fx-text-fill: #ebebeb;");
+                ((CheckBox)hb.getChildren().get(i)).setStyle("-fx-font-size: 27;" + "-fx-text-fill: #141414;");
             } else if (hb.getChildren().get(i) instanceof VBox) {
                 for (int j = 0; j<((VBox)hb.getChildren().get(i)).getChildren().size(); j++) {
                     if (((VBox)hb.getChildren().get(i)).getChildren().get(j) instanceof Text) {
                         ((Text)((VBox)hb.getChildren().get(i)).getChildren().get(j)).setFont(prodSansBig);
                         ((Text)((VBox)hb.getChildren().get(i)).getChildren().get(j)).setStyle("-fx-font-size: 21;");
-                        ((Text)((VBox)hb.getChildren().get(i)).getChildren().get(j)).setFill(Color.gray(0.92));
+                        ((Text)((VBox)hb.getChildren().get(i)).getChildren().get(j)).setFill(Color.gray(0.08));
                     } else if (((VBox)hb.getChildren().get(i)).getChildren().get(j) instanceof TextField) {
                         ((TextField)((VBox)hb.getChildren().get(i)).getChildren().get(j)).setFont(prodSansBig);
                         ((TextField)((VBox)hb.getChildren().get(i)).getChildren().get(j)).setStyle("-fx-font-size: 27;");
