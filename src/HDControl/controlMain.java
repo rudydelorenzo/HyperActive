@@ -3,6 +3,7 @@ package HDControl;
 import java.io.*;
 import java.net.*;
 import java.util.ArrayList;
+import javafx.animation.ScaleTransition;
 import javafx.application.*;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -21,15 +22,18 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.scene.paint.*;
+import javafx.scene.shape.Circle;
 import javafx.scene.text.*;
 import javafx.stage.*;
 import javafx.util.Callback;
+import javafx.util.Duration;
 
 public class controlMain extends Application implements EventHandler<ActionEvent>, RefreshListener {
     
     public static final String version = "0.0.1a";
     public static Stage primaryStage;
     public static Socket client;
+    public static Scene mainScene;
     public static InetAddress ip;
     public static ArrayList<Hyperdeck> hyperdecks = new ArrayList();
     public static Background recRed = new Background(new BackgroundFill(Color.web("#d32f2f"), CornerRadii.EMPTY, Insets.EMPTY));
@@ -37,6 +41,7 @@ public class controlMain extends Application implements EventHandler<ActionEvent
     public static Background unkPurple = new Background(new BackgroundFill(Color.web("#6a1b9a"), CornerRadii.EMPTY, Insets.EMPTY));
     public static Background stopGray = new Background(new BackgroundFill(Color.web("#757575"), CornerRadii.EMPTY, Insets.EMPTY));
     public static Background bottomGray = new Background(new BackgroundFill(Color.web("#607d8b"), CornerRadii.EMPTY, Insets.EMPTY));
+    public static Background defaultBg = new Background(new BackgroundFill(Color.web("#f0f0f0"), CornerRadii.EMPTY, Insets.EMPTY));
     public static Font prodSansBig, prodSansSmall;
     public static BorderPane mainLayout = new BorderPane();
     public static GridPane topGrid;
@@ -44,12 +49,13 @@ public class controlMain extends Application implements EventHandler<ActionEvent
     public static RowConstraints statusBarItemHeight = new RowConstraints();
     public static DropShadow dropShadow = new DropShadow();
     public static Image stopImg, playImg, prevImg, pauseImg, recImg, errImg, shuttleImg;
-    public static Button s1Button, s2Button, recallButton, saveButton, editButton, deleteButton, playButton, pauseButton, stopButton, nextClip, prevClip, fwdButton, revButton, custom1Button, custom2Button;
+    public static Button s1Button, s2Button, recallButton, saveButton, editButton, deleteButton, playButton, pauseButton, stopButton, nextClip, prevClip, fwdButton, revButton, custom1Button, custom2Button, addHDButton;
     public static ObservableList<ReplayIdentifier> replaysList= FXCollections.observableArrayList();
     public static int currId = 0;
     public static ListView lv;
     public static double xOffset = 0;
     public static double yOffset = 0;
+    public static StackPane buttonAndFill;
         
     
     public static void main(String[] args) {
@@ -83,18 +89,18 @@ public class controlMain extends Application implements EventHandler<ActionEvent
         addHyperdeck("192.168.0.30", true, "Living Room HD");
         
         createStatusBar();
+        createBottom();
         createReplayList();
         createControlButtons();
-        createBottom();
         
-        Scene mainScene = new Scene(mainLayout, 1600, 900);
+        mainScene = new Scene(mainLayout, 1600, 900);
         mainScene.setOnKeyPressed(new EventHandler<KeyEvent>() {
 
             @Override
             public void handle(KeyEvent event) {
                 //replaysList.set(0, new ReplayIdentifier(replaysList.get(0).getId(), "newo-nameo"));
             }
-        });
+        });     
         
         primaryStage.setScene(mainScene);
         primaryStage.show();
@@ -110,6 +116,8 @@ public class controlMain extends Application implements EventHandler<ActionEvent
                     hyperdecks.get(i).playReplay(selectedRI.getId());
                 }
             }
+        } else if (event.getSource() == addHDButton) {
+            
         }
     }
     
@@ -218,6 +226,7 @@ public class controlMain extends Application implements EventHandler<ActionEvent
         leftGrid.setAlignment(Pos.CENTER);
         
         centerHolder.getChildren().add(leftGrid);
+        centerHolder.setBackground(defaultBg);
         
         mainLayout.setCenter(centerHolder);
         
@@ -270,6 +279,8 @@ public class controlMain extends Application implements EventHandler<ActionEvent
         spList.getChildren().add(lv);
         spList.setMargin(lv, new Insets(20));
         
+        spList.setBackground(defaultBg);
+        
         mainLayout.setLeft(spList);
     }
     
@@ -287,29 +298,66 @@ public class controlMain extends Application implements EventHandler<ActionEvent
     
     public void createBottom() {
         HBox hb = new HBox(15);
+        VBox vbIp = new VBox(7);
+        VBox vbPort = new VBox(7);
+        VBox vbName = new VBox(7);
+        
         StackPane parentSb = new StackPane(hb);
         parentSb.setPadding(new Insets(20));
         parentSb.setBackground(bottomGray);
         
+        Text ipLabel = new Text("IP");
+        Text portLabel = new Text("Port");
+        Text nameLabel = new Text("Name");
         TextField ipTf = new TextField();
         TextField portTf = new TextField("9993");
         TextField nameTf = new TextField("");
         CheckBox connectCb = new CheckBox("Connect?");
-        //Button addButton = new Button("");
+        buttonAndFill = new StackPane();
+        Circle fillCircle = new Circle();
+        fillCircle.setRadius(30);
+        addHDButton = new Button("A");
+        addHDButton.setStyle("-fx-background-radius: 5em; " +
+                "-fx-min-width: 70px; " +
+                "-fx-min-height: 70px; ");
+        buttonAndFill.getChildren().addAll(fillCircle, addHDButton);
         
-        hb.getChildren().add(ipTf);
-        hb.getChildren().add(portTf);
-        hb.getChildren().add(nameTf);
+        vbIp.getChildren().addAll(ipLabel, ipTf);
+        vbPort.getChildren().addAll(portLabel, portTf);
+        vbName.getChildren().addAll(nameLabel, nameTf);
+        
+        hb.getChildren().add(vbIp);
+        hb.getChildren().add(vbPort);
+        hb.getChildren().add(vbName);
         hb.getChildren().add(connectCb);
+        
+        
         for (int i = 0; i<hb.getChildren().size(); i++) {
-            if (hb.getChildren().get(i) instanceof TextField) {
-                ((TextField)hb.getChildren().get(i)).setFont(prodSansBig);
-                ((TextField)hb.getChildren().get(i)).setStyle("-fx-font-size: 27;");
-            } else if (hb.getChildren().get(i) instanceof CheckBox) {
+            if (hb.getChildren().get(i) instanceof CheckBox) {
                 ((CheckBox)hb.getChildren().get(i)).setFont(prodSansBig);
                 ((CheckBox)hb.getChildren().get(i)).setStyle("-fx-font-size: 27;");
+            } else if (hb.getChildren().get(i) instanceof VBox) {
+                for (int j = 0; j<((VBox)hb.getChildren().get(i)).getChildren().size(); j++) {
+                    if (((VBox)hb.getChildren().get(i)).getChildren().get(j) instanceof Text) {
+                        ((Text)((VBox)hb.getChildren().get(i)).getChildren().get(j)).setFont(prodSansBig);
+                        ((Text)((VBox)hb.getChildren().get(i)).getChildren().get(j)).setStyle("-fx-font-size: 21;");
+                    } else if (((VBox)hb.getChildren().get(i)).getChildren().get(j) instanceof TextField) {
+                        ((TextField)((VBox)hb.getChildren().get(i)).getChildren().get(j)).setFont(prodSansBig);
+                        ((TextField)((VBox)hb.getChildren().get(i)).getChildren().get(j)).setStyle("-fx-font-size: 27;");
+                    }
+                    
+                }
             }
         }
+        
+        hb.getChildren().add(buttonAndFill);
+        
+        ScaleTransition enlarge = new ScaleTransition(Duration.seconds(2), fillCircle);
+        enlarge.setToX(40);
+        enlarge.setToY(40);
+        
+        enlarge.play();
+        
         hb.setAlignment(Pos.CENTER);
         
         mainLayout.setBottom(parentSb);
