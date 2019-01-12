@@ -1,0 +1,30 @@
+
+package HDControl;
+
+public class ReplayIdentifier {
+    
+    private int id;
+    private String name;
+    
+    public ReplayIdentifier(int id) {
+        this.id = id;
+        name = "Unnamed";
+    }
+    
+    public ReplayIdentifier(int id, String name) {
+        this.id = id;
+        this.name = name;
+    }
+    
+    public void setName(String name) {
+        this.name = name;
+    }
+    
+    public String getName() {
+        return name;
+    }
+    
+    public int getId() {
+        return id;
+    }
+}
