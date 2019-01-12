@@ -36,6 +36,7 @@ public class controlMain extends Application implements EventHandler<ActionEvent
     public static Background playBlue = new Background(new BackgroundFill(Color.web("#1976d2"), CornerRadii.EMPTY, Insets.EMPTY));
     public static Background unkPurple = new Background(new BackgroundFill(Color.web("#6a1b9a"), CornerRadii.EMPTY, Insets.EMPTY));
     public static Background stopGray = new Background(new BackgroundFill(Color.web("#757575"), CornerRadii.EMPTY, Insets.EMPTY));
+    public static Background bottomGray = new Background(new BackgroundFill(Color.web("#607d8b"), CornerRadii.EMPTY, Insets.EMPTY));
     public static Font prodSansBig, prodSansSmall;
     public static BorderPane mainLayout = new BorderPane();
     public static GridPane topGrid;
@@ -92,9 +93,6 @@ public class controlMain extends Application implements EventHandler<ActionEvent
             @Override
             public void handle(KeyEvent event) {
                 //replaysList.set(0, new ReplayIdentifier(replaysList.get(0).getId(), "newo-nameo"));
-                for (int i = 0; i<hyperdecks.size(); i++) {
-                    hyperdecks.get(i).playReplay(currId-1);
-                }
             }
         });
         
@@ -289,8 +287,31 @@ public class controlMain extends Application implements EventHandler<ActionEvent
     
     public void createBottom() {
         HBox hb = new HBox(15);
+        StackPane parentSb = new StackPane(hb);
+        parentSb.setPadding(new Insets(20));
+        parentSb.setBackground(bottomGray);
         
         TextField ipTf = new TextField();
-        TextField portTf = new TextField();
+        TextField portTf = new TextField("9993");
+        TextField nameTf = new TextField("");
+        CheckBox connectCb = new CheckBox("Connect?");
+        //Button addButton = new Button("");
+        
+        hb.getChildren().add(ipTf);
+        hb.getChildren().add(portTf);
+        hb.getChildren().add(nameTf);
+        hb.getChildren().add(connectCb);
+        for (int i = 0; i<hb.getChildren().size(); i++) {
+            if (hb.getChildren().get(i) instanceof TextField) {
+                ((TextField)hb.getChildren().get(i)).setFont(prodSansBig);
+                ((TextField)hb.getChildren().get(i)).setStyle("-fx-font-size: 27;");
+            } else if (hb.getChildren().get(i) instanceof CheckBox) {
+                ((CheckBox)hb.getChildren().get(i)).setFont(prodSansBig);
+                ((CheckBox)hb.getChildren().get(i)).setStyle("-fx-font-size: 27;");
+            }
+        }
+        hb.setAlignment(Pos.CENTER);
+        
+        mainLayout.setBottom(parentSb);
     }
 }
