@@ -1,0 +1,26 @@
+/*
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+*/
+/* 
+    Created on : 12-Jan-2019, 6:45:38 PM
+    Author     : Rudy
+*/
+
+@font-face {
+    font-family: Product Sans;
+    src: url('Product-Sans-Regular.ttf');
+}
+
+.text-field {
+    
+    -fx-font-family: 'Product Sans';
+    -fx-font-size: 27;
+    -fx-text-fill: #141414;
+}
+.text-field:focused {
+    -fx-font-family: 'Product Sans';
+    -fx-font-size: 27;
+    -fx-text-fill: #141414;
+}

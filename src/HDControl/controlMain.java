@@ -50,8 +50,8 @@ public class controlMain extends Application implements EventHandler<ActionEvent
     public static RowConstraints statusBarItemHeight = new RowConstraints();
     public static DropShadow dropShadow = new DropShadow();
     public static DropShadow dropShadowBottomOnly = new DropShadow();
-    public static Image stopImg, playImg, prevImg, pauseImg, recImg, errImg, shuttleImg, noConnectionImg, addImg;
-    public static Button s1Button, s2Button, recallButton, saveButton, editButton, deleteButton, playButton, pauseButton, stopButton, nextClip, prevClip, fwdButton, revButton, custom1Button, custom2Button, addHDButton;
+    public static Image stopImg, playImg, prevImg, pauseImg, recImg, errImg, shuttleImg, noConnectionImg, addImg, starImg;
+    public static Button s1Button, s2Button, recallButton, saveButton, editButton, starButton, deleteButton, clearButton, playButton, pauseButton, stopButton, nextClip, prevClip, fwdButton, revButton, custom1Button, custom2Button, addHDButton;
     public static ObservableList<ReplayIdentifier> replaysList= FXCollections.observableArrayList();
     public static int currId = 0;
     public static ListView lv;
@@ -64,8 +64,8 @@ public class controlMain extends Application implements EventHandler<ActionEvent
         try { 
             // load a custom font from a specific location (change path!)
             // 12 is the size to use
-            prodSansBig = Font.loadFont(new FileInputStream(new File("Product Sans Regular.ttf")), 40);
-            prodSansSmall = Font.loadFont(new FileInputStream(new File("Product Sans Regular.ttf")), 15);
+            prodSansBig = Font.loadFont(new FileInputStream(new File("Product-Sans-Regular.ttf")), 40);
+            prodSansSmall = Font.loadFont(new FileInputStream(new File("Product-Sans-Regular.ttf")), 15);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
@@ -78,6 +78,7 @@ public class controlMain extends Application implements EventHandler<ActionEvent
         shuttleImg = new Image("file:images/shuttle.png");
         noConnectionImg = new Image("file:images/noconnection2.png");
         addImg = new Image("file:images/add.png");
+        starImg = new Image("file:images/star.png");
         
         sbarWidth.setPercentWidth(100);
         launch(args);
@@ -107,14 +108,8 @@ public class controlMain extends Application implements EventHandler<ActionEvent
     @Override
     public void handle(ActionEvent event) {
         if (event.getSource() == saveButton) makeReplay();
-        else if (event.getSource() == recallButton) {
-            ReplayIdentifier selectedRI = ((ReplayIdentifier)(lv.getSelectionModel().getSelectedItem()));
-            if (selectedRI != null) {
-                for (int i = 0; i<hyperdecks.size(); i++) {
-                    hyperdecks.get(i).playReplay(selectedRI.getId());
-                }
-            }
-        }
+        else if (event.getSource() == recallButton) recallReplay();
+        else if (event.getSource() == starButton) replayToggleStar();
     }
     
     public void makeUI() {
@@ -223,12 +218,16 @@ public class controlMain extends Application implements EventHandler<ActionEvent
         recallButton = new Button("RECALL");
         saveButton = new Button("SAVE");
         editButton = new Button("EDIT");
+        starButton = new Button("STAR");
+        
         deleteButton = new Button("DELETE");
+        clearButton = new Button("CLEAR");
         custom1Button = new Button("C1");
         custom2Button = new Button("C2");
         
         saveButton.setOnAction(this);
         recallButton.setOnAction(this);
+        starButton.setOnAction(this);
         
         GridPane leftGrid = new GridPane();
         leftGrid.add(s1Button, 0, 0);
@@ -236,9 +235,9 @@ public class controlMain extends Application implements EventHandler<ActionEvent
         leftGrid.add(recallButton, 0, 1, 2, 1);
         leftGrid.add(saveButton, 0, 2, 2, 1);
         leftGrid.add(editButton, 0, 3, 2, 1);
-        leftGrid.add(deleteButton, 0, 4, 2, 1);
-        leftGrid.add(custom1Button, 0, 6, 2, 1);
-        leftGrid.add(custom2Button, 0, 7, 2, 1);
+        leftGrid.add(starButton, 0, 4, 2, 1);
+        leftGrid.add(deleteButton, 0, 6, 2, 1);
+        leftGrid.add(clearButton, 0, 7, 2, 1);
         
         for (int i = 0; i<leftGrid.getChildren().size(); i++) {
             Button tempButton = (Button)(leftGrid.getChildren().get(i));
@@ -290,17 +289,12 @@ public class controlMain extends Application implements EventHandler<ActionEvent
                 return new CustomListCell();
             }
         });
+        lv.getStylesheets().add("CSS/ReplayListCellCSS.css");
         lv.setOnMouseClicked(new EventHandler<MouseEvent>() {
             @Override
             public void handle(MouseEvent click) {
-                
                 if (click.getClickCount() == 2) {
-                    ReplayIdentifier selectedRI = ((ReplayIdentifier)(lv.getSelectionModel().getSelectedItem()));
-                    if (selectedRI != null) {
-                        for (int i = 0; i<hyperdecks.size(); i++) {
-                            hyperdecks.get(i).playReplay(selectedRI.getId());
-                        }
-                    }
+                    recallReplay();
                 }
             }
         });
@@ -309,11 +303,8 @@ public class controlMain extends Application implements EventHandler<ActionEvent
         spList.setMargin(lv, new Insets(20));
         
         spList.setBackground(defaultBg);
-        //spList.setEffect(dropShadow);
         
         centerHolder.getChildren().add(0, spList);
-        
-        //mainLayout.setLeft(spList);
     }
     
     public void makeReplay() {
@@ -325,7 +316,21 @@ public class controlMain extends Application implements EventHandler<ActionEvent
     }
     
     public void recallReplay() {
-        
+        ReplayIdentifier selectedRI = ((ReplayIdentifier)(lv.getSelectionModel().getSelectedItem()));
+        if (selectedRI != null) {
+            for (int i = 0; i<hyperdecks.size(); i++) {
+                hyperdecks.get(i).playReplay(selectedRI.getId());
+            }
+        }
+    }
+    
+    public void replayToggleStar() {
+        ReplayIdentifier selectedRI = ((ReplayIdentifier)(lv.getSelectionModel().getSelectedItem()));
+        int selectedIndex = lv.getSelectionModel().getSelectedIndex();
+        if (selectedRI != null) {
+            selectedRI.toggleStarred();
+            replaysList.set(selectedIndex, selectedRI);
+        }
     }
     
     public void createBottom() {
@@ -391,8 +396,7 @@ public class controlMain extends Application implements EventHandler<ActionEvent
                         ((Text)((VBox)hb.getChildren().get(i)).getChildren().get(j)).setStyle("-fx-font-size: 21;");
                         ((Text)((VBox)hb.getChildren().get(i)).getChildren().get(j)).setFill(Color.gray(0.08));
                     } else if (((VBox)hb.getChildren().get(i)).getChildren().get(j) instanceof TextField) {
-                        ((TextField)((VBox)hb.getChildren().get(i)).getChildren().get(j)).setFont(prodSansBig);
-                        ((TextField)((VBox)hb.getChildren().get(i)).getChildren().get(j)).setStyle("-fx-font-size: 27;");
+                        ((TextField)((VBox)hb.getChildren().get(i)).getChildren().get(j)).getStylesheets().add("/CSS/BottomTextFieldCSS.css");
                     } else if (((VBox)hb.getChildren().get(i)).getChildren().get(j) instanceof CheckBox) {
                         ((CheckBox)((VBox)hb.getChildren().get(i)).getChildren().get(j)).setFont(prodSansBig);
                         ((CheckBox)((VBox)hb.getChildren().get(i)).getChildren().get(j)).getStylesheets().add("/CSS/BottomCheckBoxCSS.css");
