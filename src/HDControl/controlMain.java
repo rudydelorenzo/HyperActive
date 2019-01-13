@@ -77,7 +77,7 @@ public class controlMain extends Application implements EventHandler<ActionEvent
         errImg = new Image("file:images/err.png");
         shuttleImg = new Image("file:images/shuttle.png");
         noConnectionImg = new Image("file:images/noconnection2.png");
-        addImg = new Image("file:images/add.png");
+        addImg = new Image("file:images/addb.png");
         
         sbarWidth.setPercentWidth(100);
         launch(args);
@@ -317,7 +317,7 @@ public class controlMain extends Application implements EventHandler<ActionEvent
     }
     
     public void makeReplay() {
-        replaysList.add(new ReplayIdentifier(currId, "Issa Replay"));
+        replaysList.add(new ReplayIdentifier(currId, "Untitled Replay " + currId));
         for (int i = 0; i<hyperdecks.size(); i++) {
             hyperdecks.get(i).newReplay(currId);
         }
@@ -360,13 +360,13 @@ public class controlMain extends Application implements EventHandler<ActionEvent
                 "-fx-min-height: 80px; " + 
                 "-fx-max-width: 80px; " +
                 "-fx-max-height: 80px; " + 
-                "-fx-background-color: #455a64; " +
+                "-fx-background-color: #ffab40; " +
                 "-fx-text-fill: black; ");
         DropShadow dSButton = new DropShadow();
         dSButton.setBlurType(BlurType.GAUSSIAN);
         dSButton.setOffsetX(0.0);
         dSButton.setOffsetY(3.0);
-        dSButton.setRadius(15);
+        dSButton.setRadius(7);
         dSButton.setColor(Color.web("#444444"));
         addHDButton.setEffect(dSButton);
         
