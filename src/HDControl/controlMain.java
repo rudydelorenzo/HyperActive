@@ -77,7 +77,7 @@ public class controlMain extends Application implements EventHandler<ActionEvent
         errImg = new Image("file:images/err.png");
         shuttleImg = new Image("file:images/shuttle.png");
         noConnectionImg = new Image("file:images/noconnection2.png");
-        addImg = new Image("file:images/addb.png");
+        addImg = new Image("file:images/add.png");
         
         sbarWidth.setPercentWidth(100);
         launch(args);
