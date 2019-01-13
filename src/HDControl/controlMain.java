@@ -50,7 +50,7 @@ public class controlMain extends Application implements EventHandler<ActionEvent
     public static RowConstraints statusBarItemHeight = new RowConstraints();
     public static DropShadow dropShadow = new DropShadow();
     public static DropShadow dropShadowBottomOnly = new DropShadow();
-    public static Image stopImg, playImg, prevImg, pauseImg, recImg, errImg, shuttleImg, noConnectionImg;
+    public static Image stopImg, playImg, prevImg, pauseImg, recImg, errImg, shuttleImg, noConnectionImg, addImg;
     public static Button s1Button, s2Button, recallButton, saveButton, editButton, deleteButton, playButton, pauseButton, stopButton, nextClip, prevClip, fwdButton, revButton, custom1Button, custom2Button, addHDButton;
     public static ObservableList<ReplayIdentifier> replaysList= FXCollections.observableArrayList();
     public static int currId = 0;
@@ -77,6 +77,7 @@ public class controlMain extends Application implements EventHandler<ActionEvent
         errImg = new Image("file:images/err.png");
         shuttleImg = new Image("file:images/shuttle.png");
         noConnectionImg = new Image("file:images/noconnection2.png");
+        addImg = new Image("file:images/add.png");
         
         sbarWidth.setPercentWidth(100);
         launch(args);
@@ -350,12 +351,24 @@ public class controlMain extends Application implements EventHandler<ActionEvent
         Circle fillCircle = new Circle();
         fillCircle.setRadius(30);
         fillCircle.setFill(Color.web("#00796b"));
-        addHDButton = new Button("A");
+        addHDButton = new Button("");
+        addHDButton.setGraphic(new ImageView(addImg));
+        ((ImageView)addHDButton.getGraphic()).setPreserveRatio(true);
+        ((ImageView)addHDButton.getGraphic()).setFitHeight(50);
         addHDButton.setStyle("-fx-background-radius: 5em; " +
-                "-fx-min-width: 70px; " +
-                "-fx-min-height: 70px; " + 
-                "-fx-background-color: white; ");
-        addHDButton.setEffect(dropShadow);
+                "-fx-min-width: 80px; " +
+                "-fx-min-height: 80px; " + 
+                "-fx-max-width: 80px; " +
+                "-fx-max-height: 80px; " + 
+                "-fx-background-color: #455a64; " +
+                "-fx-text-fill: black; ");
+        DropShadow dSButton = new DropShadow();
+        dSButton.setBlurType(BlurType.GAUSSIAN);
+        dSButton.setOffsetX(0.0);
+        dSButton.setOffsetY(3.0);
+        dSButton.setRadius(15);
+        dSButton.setColor(Color.web("#444444"));
+        addHDButton.setEffect(dSButton);
         
         buttonAndFill.getChildren().addAll(fillCircle, addHDButton);
         
