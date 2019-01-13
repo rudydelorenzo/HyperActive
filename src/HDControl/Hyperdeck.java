@@ -21,6 +21,7 @@ public class Hyperdeck  {
     private String name;
     private Thread listeningThread;
     private String status = "NOT CONNECTED";
+    private int slot;
     private PrintWriter out;
     private BufferedReader in;
     private RefreshListener listener;
@@ -78,19 +79,27 @@ public class Hyperdeck  {
                     while ((temp = in.readLine()) != null) {
                         if (!temp.equals("")) {
                             received += temp;
+                            //System.out.println(temp);
                             if (temp.startsWith("status: ")) {
                                 status = temp.substring(temp.indexOf(": ")+2);
                             } else if (temp.startsWith("display timecode:")) {
                                 if (pendingReplayId >= 0) {
                                     replays.get(pendingReplayId).setTimecode(temp.substring(temp.indexOf(": ")+2));
-                                    if (replays.get(pendingReplayId).hasBoth()) pendingReplayId = -1;
+                                    if (replays.get(pendingReplayId).hasAll()) pendingReplayId = -1;
                                 }
                             } else if (temp.startsWith("clip count:")) {
                                 if (pendingReplayId >= 0) {
                                     replays.get(pendingReplayId).setClipId(Integer.parseInt(temp.substring(temp.indexOf(": ")+2))+1);
-                                    if (replays.get(pendingReplayId).hasBoth()) pendingReplayId = -1;
+                                    if (replays.get(pendingReplayId).hasAll()) pendingReplayId = -1;
                                 }
-                            } 
+                            } else if (temp.startsWith("slot id:") || temp.startsWith("active slot:")) {
+                                if (pendingReplayId >= 0) {
+                                    replays.get(pendingReplayId).setSlotId(Integer.parseInt(temp.substring(temp.indexOf(": ")+2)));
+                                    if (replays.get(pendingReplayId).hasAll()) pendingReplayId = -1;
+                                } else {
+                                    slot = Integer.parseInt(temp.substring(temp.indexOf(": ")+2));
+                                }
+                            }
                             Platform.runLater(sendUpdate);
                         } else {
                             //end of message from hyperdeck
@@ -139,7 +148,11 @@ public class Hyperdeck  {
     
     public StackPane getStackPane() {
         Label statusLabel = new Label(status.toUpperCase());
-        Label nameLabel = new Label(name.toUpperCase());
+        Label nameLabel;
+        nameLabel = new Label((name).toUpperCase());
+        if (connected) {
+            nameLabel = new Label((name + " (Slot " + slot + ")").toUpperCase());
+        }
         statusLabel.setFont(controlMain.prodSansBig);
         nameLabel.setFont(controlMain.prodSansSmall);
         VBox vb = new VBox(statusLabel);
@@ -211,6 +224,7 @@ public class Hyperdeck  {
     };
     
     public void newReplay(int id) {
+        say("slot info");
         say("clips count");
         say("transport info");
         replays.add(id, new Replay());
@@ -219,6 +233,7 @@ public class Hyperdeck  {
     
     public void playReplay(int id) {
         try {
+            say("slot select: slot id: " + replays.get(id).getSlotId());
             say("goto: clip id: " + replays.get(id).getClipId());
             say("goto: timecode: +" + replays.get(id).getTimecode());
         } catch (NullPointerException e) {

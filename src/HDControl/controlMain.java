@@ -4,6 +4,7 @@ import java.io.*;
 import java.net.*;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Optional;
 import javafx.animation.*;
 import javafx.application.*;
 import javafx.collections.FXCollections;
@@ -61,9 +62,7 @@ public class controlMain extends Application implements EventHandler<ActionEvent
     
     public static void main(String[] args) {
         System.setProperty("prism.lcdtext", "false");
-        try { 
-            // load a custom font from a specific location (change path!)
-            // 12 is the size to use
+        try {
             prodSansBig = Font.loadFont(new FileInputStream(new File("Product-Sans-Regular.ttf")), 40);
             prodSansSmall = Font.loadFont(new FileInputStream(new File("Product-Sans-Regular.ttf")), 15);
         } catch (FileNotFoundException e) {
@@ -107,9 +106,15 @@ public class controlMain extends Application implements EventHandler<ActionEvent
     
     @Override
     public void handle(ActionEvent event) {
-        if (event.getSource() == saveButton) makeReplay();
+        if (event.getSource() == s1Button) switchToSlot(1);
+        else if (event.getSource() == s2Button) switchToSlot(2);
         else if (event.getSource() == recallButton) recallReplay();
+        else if (event.getSource() == saveButton) makeReplay();
+        else if (event.getSource() == editButton) editReplayName();
         else if (event.getSource() == starButton) replayToggleStar();
+        else if (event.getSource() == deleteButton) removeReplay();
+        else if (event.getSource() == clearButton) clearReplays();
+        
     }
     
     public void makeUI() {
@@ -225,9 +230,17 @@ public class controlMain extends Application implements EventHandler<ActionEvent
         custom1Button = new Button("C1");
         custom2Button = new Button("C2");
         
-        saveButton.setOnAction(this);
+        s1Button.setOnAction(this);
+        s2Button.setOnAction(this);
         recallButton.setOnAction(this);
+        saveButton.setOnAction(this);
+        editButton.setOnAction(this);
         starButton.setOnAction(this);
+        
+        deleteButton.setOnAction(this);
+        clearButton.setOnAction(this);
+        custom1Button.setOnAction(this);
+        custom2Button.setOnAction(this);
         
         GridPane leftGrid = new GridPane();
         leftGrid.add(s1Button, 0, 0);
@@ -308,7 +321,7 @@ public class controlMain extends Application implements EventHandler<ActionEvent
     }
     
     public void makeReplay() {
-        replaysList.add(new ReplayIdentifier(currId, "Untitled Replay " + currId));
+        replaysList.add(0, new ReplayIdentifier(currId, "Untitled Replay " + currId));
         for (int i = 0; i<hyperdecks.size(); i++) {
             hyperdecks.get(i).newReplay(currId);
         }
@@ -331,6 +344,40 @@ public class controlMain extends Application implements EventHandler<ActionEvent
             selectedRI.toggleStarred();
             replaysList.set(selectedIndex, selectedRI);
         }
+    }
+    
+    public void switchToSlot(int slotid) {
+        for (int i = 0; i<hyperdecks.size(); i++) {
+            hyperdecks.get(i).say("slot select: slot id: " + slotid);
+        }
+    }
+    
+    public void editReplayName() {
+        ReplayIdentifier selectedRI = ((ReplayIdentifier)(lv.getSelectionModel().getSelectedItem()));
+        int selectedIndex = lv.getSelectionModel().getSelectedIndex();
+        if (selectedRI != null) {
+            TextInputDialog newNameDialog = new TextInputDialog(selectedRI.getName());
+ 
+            newNameDialog.setTitle("Replay Name Editor");
+            newNameDialog.setHeaderText("Enter name for the replay:");
+            newNameDialog.setContentText("New name:");
+
+            Optional<String> result = newNameDialog.showAndWait();
+
+            result.ifPresent(name -> {
+                selectedRI.setName(name);
+                replaysList.set(selectedIndex, selectedRI);
+            });
+        }
+    }
+    
+    public void removeReplay() {
+        int selectedIndex = lv.getSelectionModel().getSelectedIndex();
+        replaysList.remove(selectedIndex);
+    }
+    
+    public void clearReplays() {
+        replaysList.clear();
     }
     
     public void createBottom() {
