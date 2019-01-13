@@ -51,8 +51,8 @@ public class controlMain extends Application implements EventHandler<ActionEvent
     public static RowConstraints statusBarItemHeight = new RowConstraints();
     public static DropShadow dropShadow = new DropShadow();
     public static DropShadow dropShadowBottomOnly = new DropShadow();
-    public static Image stopImg, playImg, prevImg, pauseImg, recImg, errImg, shuttleImg, noConnectionImg, addImg, starImg;
-    public static Button s1Button, s2Button, recallButton, saveButton, editButton, starButton, deleteButton, clearButton, playButton, pauseButton, stopButton, nextClip, prevClip, fwdButton, revButton, custom1Button, custom2Button, addHDButton;
+    public static Image stopImg, playImg, prevImg, pauseImg, recImg, errImg, shuttleImg, noConnectionImg, addImg, starImg, playBlackImg, stopBlackImg, recBlackImg, skipFwdBlackImg, skipBackBlackImg;
+    public static Button s1Button, s2Button, recallButton, saveButton, editButton, starButton, deleteButton, clearButton, recordButton, stopButton, playButton, nextClip, prevClip, fwdButton, revButton, custom1Button, custom2Button, addHDButton;
     public static ObservableList<ReplayIdentifier> replaysList= FXCollections.observableArrayList();
     public static int currId = 0;
     public static ListView lv;
@@ -77,7 +77,11 @@ public class controlMain extends Application implements EventHandler<ActionEvent
         shuttleImg = new Image("file:images/shuttle.png");
         noConnectionImg = new Image("file:images/noconnection2.png");
         addImg = new Image("file:images/add.png");
-        starImg = new Image("file:images/star.png");
+        playBlackImg = new Image("file:images/playBlack.png");
+        stopBlackImg = new Image("file:images/stopBlack.png");
+        skipFwdBlackImg = new Image("file:images/skipFwd.png");
+        skipBackBlackImg = new Image("file:images/skipBack.png");
+        recBlackImg = new Image("file:images/recordBlack.png");
         
         sbarWidth.setPercentWidth(100);
         launch(args);
@@ -86,7 +90,7 @@ public class controlMain extends Application implements EventHandler<ActionEvent
     @Override
     public void start(Stage stage) {
         primaryStage = stage;
-        primaryStage.setTitle("Blackmagic HyperDeck Control " + version);
+        primaryStage.setTitle("HyperActive " + version);
         primaryStage.initStyle(StageStyle.UNDECORATED);
         
         makeUI();
@@ -114,6 +118,11 @@ public class controlMain extends Application implements EventHandler<ActionEvent
         else if (event.getSource() == starButton) replayToggleStar();
         else if (event.getSource() == deleteButton) removeReplay();
         else if (event.getSource() == clearButton) clearReplays();
+        else if (event.getSource() == recordButton) startRecord();
+        else if (event.getSource() == stopButton) sayStop();
+        else if (event.getSource() == playButton) sayPlay();
+        else if (event.getSource() == nextClip) nextClip();
+        else if (event.getSource() == prevClip) prevClip();
         
     }
     
@@ -217,7 +226,7 @@ public class controlMain extends Application implements EventHandler<ActionEvent
         colsLeft.setPercentWidth(100);
         RowConstraints rowsLeft = new RowConstraints();
         rowsLeft.setPercentHeight(100);
-        
+        //left column
         s1Button = new Button("S1");
         s2Button = new Button("S2");
         recallButton = new Button("RECALL");
@@ -265,9 +274,53 @@ public class controlMain extends Application implements EventHandler<ActionEvent
         leftGrid.setPadding(new Insets(30,0,30,0));
         leftGrid.setAlignment(Pos.CENTER);
         
+        //center column
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+        
+        recordButton = new Button();
+        stopButton = new Button();
+        playButton = new Button();
+        nextClip = new Button();
+        prevClip = new Button();
+        
+        recordButton.setOnAction(this);
+        stopButton.setOnAction(this);
+        playButton.setOnAction(this);
+        nextClip.setOnAction(this);
+        prevClip.setOnAction(this);
+        
+        GridPane mainControls = new GridPane();
+        mainControls.add(recordButton, 0, 0);
+        mainControls.add(stopButton, 0, 1);
+        mainControls.add(playButton, 0, 2);
+        mainControls.add(nextClip, 0, 3);
+        mainControls.add(prevClip, 0, 4);
+        
+        recordButton.setGraphic(new ImageView(recBlackImg));
+        stopButton.setGraphic(new ImageView(stopBlackImg));
+        playButton.setGraphic(new ImageView(playBlackImg));
+        nextClip.setGraphic(new ImageView(skipFwdBlackImg));
+        prevClip.setGraphic(new ImageView(skipBackBlackImg));
+        
+        for (int i = 0; i<mainControls.getChildren().size(); i++) {
+            Button tempButton = (Button)(mainControls.getChildren().get(i));
+            ((ImageView)tempButton.getGraphic()).setPreserveRatio(true);
+            ((ImageView)tempButton.getGraphic()).setFitHeight(90);
+            mainControls.getRowConstraints().add(rowsLeft);
+        }
+        
+        mainControls.getColumnConstraints().add(colsLeft);
+        mainControls.setPadding(new Insets(30,0,30,0));
+        
         centerHolder.getChildren().add(leftGrid);
+        centerHolder.getChildren().add(spacer);
+        centerHolder.getChildren().add(mainControls);
         centerHolder.setBackground(defaultBg);
         centerHolder.setEffect(dropShadow);
+        centerHolder.setAlignment(Pos.CENTER_LEFT);
+        
+        //centerHolder.setSpacing(100);
         
         mainLayout.setCenter(centerHolder);
         
@@ -323,7 +376,9 @@ public class controlMain extends Application implements EventHandler<ActionEvent
     public void makeReplay() {
         replaysList.add(0, new ReplayIdentifier(currId, "Untitled Replay " + currId));
         for (int i = 0; i<hyperdecks.size(); i++) {
-            hyperdecks.get(i).newReplay(currId);
+            if (hyperdecks.get(i).isManaged()) {
+                hyperdecks.get(i).newReplay(currId);
+            }
         }
         currId++;
     }
@@ -332,7 +387,9 @@ public class controlMain extends Application implements EventHandler<ActionEvent
         ReplayIdentifier selectedRI = ((ReplayIdentifier)(lv.getSelectionModel().getSelectedItem()));
         if (selectedRI != null) {
             for (int i = 0; i<hyperdecks.size(); i++) {
-                hyperdecks.get(i).playReplay(selectedRI.getId());
+                if (hyperdecks.get(i).isManaged()) {
+                    hyperdecks.get(i).playReplay(selectedRI.getId());
+                }
             }
         }
     }
@@ -348,7 +405,49 @@ public class controlMain extends Application implements EventHandler<ActionEvent
     
     public void switchToSlot(int slotid) {
         for (int i = 0; i<hyperdecks.size(); i++) {
-            hyperdecks.get(i).say("slot select: slot id: " + slotid);
+            if (hyperdecks.get(i).isManaged()) {
+                hyperdecks.get(i).say("slot select: slot id: " + slotid);
+            }
+        }
+    }
+    
+    public void startRecord() {
+        for (int i = 0; i<hyperdecks.size(); i++) {
+            if (hyperdecks.get(i).isManaged()) {
+                hyperdecks.get(i).say("record");
+            }
+        }
+    }
+    
+    public void sayStop() {
+        for (int i = 0; i<hyperdecks.size(); i++) {
+            if (hyperdecks.get(i).isManaged()) {
+                hyperdecks.get(i).say("stop");
+            }
+        }
+    }
+    
+    public void sayPlay() {
+        for (int i = 0; i<hyperdecks.size(); i++) {
+            if (hyperdecks.get(i).isManaged()) {
+                hyperdecks.get(i).say("play");
+            }
+        }
+    }
+    
+    public void nextClip() {
+        for (int i = 0; i<hyperdecks.size(); i++) {
+            if (hyperdecks.get(i).isManaged()) {
+                hyperdecks.get(i).say("goto: clip id: +1");
+            }
+        }
+    }
+    
+    public void prevClip() {
+        for (int i = 0; i<hyperdecks.size(); i++) {
+            if (hyperdecks.get(i).isManaged()) {
+                hyperdecks.get(i).say("goto: clip id: -1");
+            }
         }
     }
     

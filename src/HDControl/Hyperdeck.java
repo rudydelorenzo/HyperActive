@@ -240,4 +240,8 @@ public class Hyperdeck  {
             System.out.println("Replay ID " + id + " didn't exist on HyperDeck \"" + name);
         }
     }
+    
+    public boolean isManaged() {
+        return managed;
+    }
 }
