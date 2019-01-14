@@ -53,6 +53,7 @@ public class controlMain extends Application implements EventHandler<ActionEvent
     public static DropShadow dropShadowBottomOnly = new DropShadow();
     public static Image stopImg, playImg, prevImg, pauseImg, recImg, errImg, shuttleImg, noConnectionImg, addImg, starImg, playBlackImg, stopBlackImg, recBlackImg, skipFwdBlackImg, skipBackBlackImg;
     public static Button s1Button, s2Button, recallButton, saveButton, editButton, starButton, deleteButton, clearButton, recordButton, stopButton, playButton, nextClip, prevClip, fwdButton, revButton, custom1Button, custom2Button, addHDButton;
+    public static Button spd25, spd50, spd75, spd100, spd200, spd800, spd1600;
     public static ObservableList<ReplayIdentifier> replaysList= FXCollections.observableArrayList();
     public static int currId = 0;
     public static ListView lv;
@@ -75,6 +76,7 @@ public class controlMain extends Application implements EventHandler<ActionEvent
         pauseImg = new Image("file:images/pause.png");
         errImg = new Image("file:images/err.png");
         shuttleImg = new Image("file:images/shuttle.png");
+        starImg = new Image("file:images/star.png");
         noConnectionImg = new Image("file:images/noconnection2.png");
         addImg = new Image("file:images/add.png");
         playBlackImg = new Image("file:images/playBlack.png");
@@ -123,6 +125,13 @@ public class controlMain extends Application implements EventHandler<ActionEvent
         else if (event.getSource() == playButton) sayPlay();
         else if (event.getSource() == nextClip) nextClip();
         else if (event.getSource() == prevClip) prevClip();
+        else if (event.getSource() == spd25) shuttleSpeed(25);
+        else if (event.getSource() == spd50) shuttleSpeed(50);
+        else if (event.getSource() == spd75) shuttleSpeed(75);
+        else if (event.getSource() == spd100) shuttleSpeed(100);
+        else if (event.getSource() == spd200) shuttleSpeed(200);
+        else if (event.getSource() == spd800) shuttleSpeed(800);
+        else if (event.getSource() == spd1600) shuttleSpeed(1600);
         
     }
     
@@ -266,6 +275,7 @@ public class controlMain extends Application implements EventHandler<ActionEvent
             tempButton.setFont(prodSansBig);
             tempButton.setStyle("-fx-font-size:30");
             tempButton.setMaxWidth(Double.MAX_VALUE);
+            //tempButton.setMaxHeight(Double.MAX_VALUE);
             leftGrid.getRowConstraints().add(rowsLeft);
         }
         
@@ -278,11 +288,11 @@ public class controlMain extends Application implements EventHandler<ActionEvent
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
         
-        recordButton = new Button();
-        stopButton = new Button();
-        playButton = new Button();
-        nextClip = new Button();
-        prevClip = new Button();
+        recordButton = new Button("RECORD");
+        stopButton = new Button("STOP");
+        playButton = new Button("PLAY");
+        nextClip = new Button("FWD CLIP");
+        prevClip = new Button("BACK CLIP");
         
         recordButton.setOnAction(this);
         stopButton.setOnAction(this);
@@ -306,16 +316,64 @@ public class controlMain extends Application implements EventHandler<ActionEvent
         for (int i = 0; i<mainControls.getChildren().size(); i++) {
             Button tempButton = (Button)(mainControls.getChildren().get(i));
             ((ImageView)tempButton.getGraphic()).setPreserveRatio(true);
-            ((ImageView)tempButton.getGraphic()).setFitHeight(90);
+            ((ImageView)tempButton.getGraphic()).setFitHeight(70);
+            tempButton.setFont(prodSansBig);
+            tempButton.setStyle("-fx-font-size:50");
+            tempButton.setMaxWidth(Double.MAX_VALUE);
+            //tempButton.setMaxHeight(Double.MAX_VALUE);
             mainControls.getRowConstraints().add(rowsLeft);
         }
         
         mainControls.getColumnConstraints().add(colsLeft);
         mainControls.setPadding(new Insets(30,0,30,0));
         
+        Region spacer2 = new Region();
+        HBox.setHgrow(spacer2, Priority.ALWAYS);
+        //speedButtons
+        GridPane speedButtons = new GridPane();
+        spd25 = new Button("25%");
+        spd25.setOnAction(this);
+        spd50 = new Button("50%");
+        spd50.setOnAction(this);
+        spd75 = new Button("75%");
+        spd75.setOnAction(this);
+        spd100 = new Button("100%");
+        spd100.setOnAction(this);
+        spd200 = new Button("200%");
+        spd200.setOnAction(this);
+        spd800 = new Button("800%");
+        spd800.setOnAction(this);
+        spd1600 = new Button("1600%");
+        spd1600.setOnAction(this);
+        fwdButton = new Button();
+        fwdButton.setOnAction(this);
+        revButton = new Button();
+        revButton.setOnAction(this);
+        speedButtons.add(spd25, 0, 0, 2, 1);
+        speedButtons.add(spd50, 0, 1, 2, 1);
+        speedButtons.add(spd75, 0, 2, 2, 1);
+        speedButtons.add(spd100, 0, 3, 2, 1);
+        speedButtons.add(spd200, 0, 4, 2, 1);
+        speedButtons.add(spd800, 0, 5, 2, 1);
+        speedButtons.add(spd1600, 0, 6, 2, 1);
+        
+        for (int i = 0; i<speedButtons.getChildren().size(); i++) {
+            Button tempButton = (Button)(speedButtons.getChildren().get(i));
+            tempButton.setFont(prodSansBig);
+            tempButton.setStyle("-fx-font-size:30");
+            tempButton.setMaxWidth(Double.MAX_VALUE);
+            tempButton.setMaxHeight(Double.MAX_VALUE);
+            speedButtons.getRowConstraints().add(rowsLeft);
+        }
+        
+        speedButtons.getColumnConstraints().add(colsLeft);
+        speedButtons.setPadding(new Insets(30,0,30,0));
+        
         centerHolder.getChildren().add(leftGrid);
         centerHolder.getChildren().add(spacer);
         centerHolder.getChildren().add(mainControls);
+        centerHolder.getChildren().add(spacer2);
+        centerHolder.getChildren().add(speedButtons);
         centerHolder.setBackground(defaultBg);
         centerHolder.setEffect(dropShadow);
         centerHolder.setAlignment(Pos.CENTER_LEFT);
@@ -479,6 +537,22 @@ public class controlMain extends Application implements EventHandler<ActionEvent
         replaysList.clear();
     }
     
+    public void shuttleSpeed(int speed) {
+        for (int i = 0; i<hyperdecks.size(); i++) {
+            if (hyperdecks.get(i).isManaged()) {
+                hyperdecks.get(i).say("shuttle: speed: " + speed);
+            }
+        }
+    }
+    
+    public void playSpeed(int speed) {
+        for (int i = 0; i<hyperdecks.size(); i++) {
+            if (hyperdecks.get(i).isManaged()) {
+                hyperdecks.get(i).say("play: speed: " + speed);
+            }
+        }
+    }
+    
     public void createBottom() {
         HBox hb = new HBox(15);
         VBox vbIp = new VBox(7);
@@ -563,9 +637,9 @@ public class controlMain extends Application implements EventHandler<ActionEvent
         FadeTransition fadeInCircle = new FadeTransition(Duration.seconds(.1), fillCircle);
         fadeInCircle.setFromValue(0.0);
         fadeInCircle.setToValue(1.0);
-        ScaleTransition enlargeCircle = new ScaleTransition(Duration.seconds(0.95), fillCircle);
-        enlargeCircle.setToX(60);
-        enlargeCircle.setToY(60);
+        ScaleTransition enlargeCircle = new ScaleTransition(Duration.seconds(0.9), fillCircle);
+        enlargeCircle.setToX(70);
+        enlargeCircle.setToY(70);
         FadeTransition fadeInResult = new FadeTransition(Duration.seconds(.25), resultLabel);
         fadeInResult.setFromValue(0.0);
         fadeInResult.setToValue(1.0);

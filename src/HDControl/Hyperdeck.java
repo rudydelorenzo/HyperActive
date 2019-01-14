@@ -29,6 +29,7 @@ public class Hyperdeck  {
     private boolean connected = false;
     private ArrayList<Replay> replays = new ArrayList();
     private int pendingReplayId = -1;
+    private int speed;
     
     public Hyperdeck(String ip, int port, boolean connect, String name) {
         try {
@@ -82,6 +83,8 @@ public class Hyperdeck  {
                             //System.out.println(temp);
                             if (temp.startsWith("status: ")) {
                                 status = temp.substring(temp.indexOf(": ")+2);
+                            } else if (temp.startsWith("speed: ")) {
+                                speed = Integer.parseInt(temp.substring(temp.indexOf(": ")+2));
                             } else if (temp.startsWith("display timecode:")) {
                                 if (pendingReplayId >= 0) {
                                     replays.get(pendingReplayId).setTimecode(temp.substring(temp.indexOf(": ")+2));
