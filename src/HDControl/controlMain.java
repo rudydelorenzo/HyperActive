@@ -52,8 +52,9 @@ public class controlMain extends Application implements EventHandler<ActionEvent
     public static DropShadow dropShadow = new DropShadow();
     public static DropShadow dropShadowBottomOnly = new DropShadow();
     public static Image stopImg, playImg, prevImg, pauseImg, recImg, errImg, shuttleImg, noConnectionImg, addImg, starImg, playBlackImg, stopBlackImg, recBlackImg, skipFwdBlackImg, skipBackBlackImg;
-    public static Button s1Button, s2Button, recallButton, saveButton, editButton, starButton, deleteButton, clearButton, recordButton, stopButton, playButton, nextClip, prevClip, fwdButton, revButton, custom1Button, custom2Button, addHDButton;
+    public static Button s1Button, s2Button, recallButton, saveButton, editButton, deleteButton, clearButton, recordButton, stopButton, playButton, nextClip, prevClip, fwdButton, revButton, custom1Button, custom2Button, addHDButton;
     public static Button spd25, spd50, spd75, spd100, spd200, spd800, spd1600;
+    public static ToggleButton starButton;
     public static ObservableList<ReplayIdentifier> replaysList= FXCollections.observableArrayList();
     public static int currId = 0;
     public static ListView lv;
@@ -241,7 +242,7 @@ public class controlMain extends Application implements EventHandler<ActionEvent
         recallButton = new Button("RECALL");
         saveButton = new Button("SAVE");
         editButton = new Button("EDIT");
-        starButton = new Button("STAR");
+        starButton = new ToggleButton("STAR");
         
         deleteButton = new Button("DELETE");
         clearButton = new Button("CLEAR");
@@ -271,12 +272,21 @@ public class controlMain extends Application implements EventHandler<ActionEvent
         leftGrid.add(clearButton, 0, 7, 2, 1);
         
         for (int i = 0; i<leftGrid.getChildren().size(); i++) {
-            Button tempButton = (Button)(leftGrid.getChildren().get(i));
-            tempButton.setFont(prodSansBig);
-            tempButton.setStyle("-fx-font-size:30");
-            tempButton.setMaxWidth(Double.MAX_VALUE);
-            //tempButton.setMaxHeight(Double.MAX_VALUE);
-            leftGrid.getRowConstraints().add(rowsLeft);
+            if (leftGrid.getChildren().get(i) instanceof Button) {
+                Button tempButton = (Button)(leftGrid.getChildren().get(i));
+                tempButton.setFont(prodSansBig);
+                tempButton.setStyle("-fx-font-size:30");
+                tempButton.setMaxWidth(Double.MAX_VALUE);
+                //tempButton.setMaxHeight(Double.MAX_VALUE);
+                leftGrid.getRowConstraints().add(rowsLeft);
+            } else if (leftGrid.getChildren().get(i) instanceof ToggleButton){
+                ToggleButton tempButton = (ToggleButton)(leftGrid.getChildren().get(i));
+                tempButton.setFont(prodSansBig);
+                tempButton.setStyle("-fx-font-size:30");
+                tempButton.setMaxWidth(Double.MAX_VALUE);
+                //tempButton.setMaxHeight(Double.MAX_VALUE);
+                leftGrid.getRowConstraints().add(rowsLeft);
+            }
         }
         
         leftGrid.getColumnConstraints().add(colsLeft);
@@ -422,7 +432,7 @@ public class controlMain extends Application implements EventHandler<ActionEvent
                 }
             }
         });
-        
+        lv.getSelectionModel().selectedItemProperty().addListener((v, oldValue, newValue) -> starButton.setSelected(((ReplayIdentifier)newValue).isStarred()));
         spList.getChildren().add(lv);
         spList.setMargin(lv, new Insets(20));
         
