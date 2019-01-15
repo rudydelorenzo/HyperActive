@@ -185,15 +185,23 @@ public class Hyperdeck  {
             nameLabel.setTextFill(Color.WHITE);
             iv.setImage(controlMain.stopImg);
         } else if (status.equalsIgnoreCase("play")) {
+            statusLabel.setText((statusLabel.getText().concat(" (" + (((float)speed)/((float)100.00)) + "x)")).toUpperCase());
             sp.setBackground(controlMain.playBlue);
             statusLabel.setTextFill(Color.WHITE);
             nameLabel.setTextFill(Color.WHITE);
             iv.setImage(controlMain.playImg);
-        } else if (status.equalsIgnoreCase("shuttle")) {
+        } else if (status.equalsIgnoreCase("shuttle") || status.equalsIgnoreCase("forward")) {
+            statusLabel.setText((statusLabel.getText().concat(" (" + (((float)speed)/((float)100.00)) + "x)")).toUpperCase());
             sp.setBackground(controlMain.playBlue);
             statusLabel.setTextFill(Color.WHITE);
             nameLabel.setTextFill(Color.WHITE);
             iv.setImage(controlMain.shuttleImg);
+        } else if (status.equalsIgnoreCase("rewind")) {
+            statusLabel.setText((statusLabel.getText().concat(" (" + (((float)speed)/((float)100.00)) + "x)")).toUpperCase());
+            sp.setBackground(controlMain.rewindYellow);
+            statusLabel.setTextFill(Color.BLACK);
+            nameLabel.setTextFill(Color.BLACK);
+            iv.setImage(controlMain.revBlackImg);
         } else {
             sp.setBackground(controlMain.unkPurple);
             statusLabel.setTextFill(Color.WHITE);

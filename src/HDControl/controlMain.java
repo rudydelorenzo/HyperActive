@@ -2,16 +2,20 @@ package HDControl;
 
 import java.io.*;
 import java.net.*;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Optional;
 import javafx.animation.*;
 import javafx.application.*;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
+import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
@@ -29,6 +33,7 @@ import javafx.scene.text.*;
 import javafx.stage.*;
 import javafx.util.Callback;
 import javafx.util.Duration;
+import javafx.util.StringConverter;
 
 public class controlMain extends Application implements EventHandler<ActionEvent>, RefreshListener {
     
@@ -41,6 +46,7 @@ public class controlMain extends Application implements EventHandler<ActionEvent
     public static Background recRed = new Background(new BackgroundFill(Color.web("#d32f2f"), CornerRadii.EMPTY, Insets.EMPTY));
     public static Background playBlue = new Background(new BackgroundFill(Color.web("#1976d2"), CornerRadii.EMPTY, Insets.EMPTY));
     public static Background unkPurple = new Background(new BackgroundFill(Color.web("#6a1b9a"), CornerRadii.EMPTY, Insets.EMPTY));
+    public static Background rewindYellow = new Background(new BackgroundFill(Color.web("#fbc02d"), CornerRadii.EMPTY, Insets.EMPTY));
     public static Background stopGray = new Background(new BackgroundFill(Color.web("#757575"), CornerRadii.EMPTY, Insets.EMPTY));
     public static Background bottomGray = new Background(new BackgroundFill(Color.web("#b0bec5"), CornerRadii.EMPTY, Insets.EMPTY));
     public static Background defaultBg = new Background(new BackgroundFill(Color.web("#f0f0f0"), CornerRadii.EMPTY, Insets.EMPTY));
@@ -51,7 +57,7 @@ public class controlMain extends Application implements EventHandler<ActionEvent
     public static RowConstraints statusBarItemHeight = new RowConstraints();
     public static DropShadow dropShadow = new DropShadow();
     public static DropShadow dropShadowBottomOnly = new DropShadow();
-    public static Image stopImg, playImg, prevImg, pauseImg, recImg, errImg, shuttleImg, noConnectionImg, addImg, starImg, playBlackImg, stopBlackImg, recBlackImg, skipFwdBlackImg, skipBackBlackImg, revBlackImg, fwdBlackImg;
+    public static Image stopImg, playImg, prevImg, pauseImg, recImg, errImg, shuttleImg, noConnectionImg, addImg, starImg, playBlackImg, stopBlackImg, recBlackImg, skipFwdBlackImg, skipBackBlackImg, revBlackImg, fwdBlackImg, handleImg;
     public static Button s1Button, s2Button, recallButton, saveButton, editButton, deleteButton, clearButton, recordButton, stopButton, playButton, nextClip, prevClip, fwdButton, revButton, custom1Button, custom2Button, addHDButton;
     public static Button spd25, spd50, spd75, spd100, spd200, spd800, spd1600;
     public static ToggleButton starToggle, reverseToggle, fwdToggle;
@@ -61,6 +67,7 @@ public class controlMain extends Application implements EventHandler<ActionEvent
     public static double xOffset = 0;
     public static double yOffset = 0;
     public static HBox centerHolder = new HBox(10);
+    public static Slider speedSlider;
     
     public static void main(String[] args) {
         System.setProperty("prism.lcdtext", "false");
@@ -87,6 +94,7 @@ public class controlMain extends Application implements EventHandler<ActionEvent
         recBlackImg = new Image("file:images/recordBlack.png");
         revBlackImg = new Image("file:images/reverseBlack.png");
         fwdBlackImg = new Image("file:images/forwardBlack.png");
+        //handleImg = new Image("file:images/handle.png");
         
         sbarWidth.setPercentWidth(100);
         launch(args);
@@ -367,6 +375,7 @@ public class controlMain extends Application implements EventHandler<ActionEvent
         ((ImageView)reverseToggle.getGraphic()).setPreserveRatio(true);
         ((ImageView)reverseToggle.getGraphic()).setFitHeight(70);
         fwdToggle = new ToggleButton();
+        fwdToggle.setSelected(true);
         fwdToggle.setToggleGroup(directionGroup);
         fwdToggle.setOnAction(this);
         fwdToggle.setGraphic(new ImageView(fwdBlackImg));
@@ -410,11 +419,50 @@ public class controlMain extends Application implements EventHandler<ActionEvent
         speedButtons.getColumnConstraints().add(colsFwdRev);
         speedButtons.setPadding(new Insets(30,0,30,0));
         
+        Region spacer3 = new Region();
+        HBox.setHgrow(spacer3, Priority.ALWAYS);
+        //speed slider
+        speedSlider = new Slider(0, 200, 100);
+        speedSlider.setSnapToTicks(true);
+        speedSlider.getStylesheets().add("/CSS/SpeedSliderCSS.css");
+        speedSlider.setOrientation(Orientation.VERTICAL);
+        speedSlider.setShowTickMarks(true);
+        speedSlider.setShowTickLabels(true);
+        speedSlider.setMajorTickUnit(10f);
+        speedSlider.setBlockIncrement(1f);
+        speedSlider.setLabelFormatter(new StringConverter<Double>(){
+            DecimalFormat df = new DecimalFormat( "#,##0" );
+            @Override
+            public String toString(Double object) {
+                return df.format(200-object+0) + "%";
+            }
+
+            @Override
+            public Double fromString(String string) {
+                throw new UnsupportedOperationException("Not supported yet."); 
+            }
+
+        });
+        speedSlider.valueProperty().addListener(new ChangeListener<Number>() {
+            public void changed(ObservableValue<? extends Number> ov,
+                Number old_val, Number new_val) {
+                    playSpeed(200-((int)Math.round(new_val.floatValue())));
+            }
+        });
+        
+        speedSlider.setPadding(new Insets(30,0,30,0));
+        
+        Region spacer4 = new Region();
+        HBox.setHgrow(spacer4, Priority.ALWAYS);
+        
         centerHolder.getChildren().add(leftGrid);
         centerHolder.getChildren().add(spacer);
         centerHolder.getChildren().add(mainControls);
         centerHolder.getChildren().add(spacer2);
         centerHolder.getChildren().add(speedButtons);
+        centerHolder.getChildren().add(spacer3);
+        centerHolder.getChildren().add(speedSlider);
+        centerHolder.getChildren().add(spacer4);
         centerHolder.setBackground(defaultBg);
         centerHolder.setEffect(dropShadow);
         centerHolder.setAlignment(Pos.CENTER_LEFT);

@@ -1,0 +1,12 @@
+/*
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+*/
+/* 
+    Created on : 14-Jan-2019, 9:30:24 PM
+    Author     : Rudy
+*/
+.slider *.thumb {
+    -fx-background-image: url("/images/handle.png");
+}
