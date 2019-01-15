@@ -51,10 +51,10 @@ public class controlMain extends Application implements EventHandler<ActionEvent
     public static RowConstraints statusBarItemHeight = new RowConstraints();
     public static DropShadow dropShadow = new DropShadow();
     public static DropShadow dropShadowBottomOnly = new DropShadow();
-    public static Image stopImg, playImg, prevImg, pauseImg, recImg, errImg, shuttleImg, noConnectionImg, addImg, starImg, playBlackImg, stopBlackImg, recBlackImg, skipFwdBlackImg, skipBackBlackImg;
+    public static Image stopImg, playImg, prevImg, pauseImg, recImg, errImg, shuttleImg, noConnectionImg, addImg, starImg, playBlackImg, stopBlackImg, recBlackImg, skipFwdBlackImg, skipBackBlackImg, revBlackImg, fwdBlackImg;
     public static Button s1Button, s2Button, recallButton, saveButton, editButton, deleteButton, clearButton, recordButton, stopButton, playButton, nextClip, prevClip, fwdButton, revButton, custom1Button, custom2Button, addHDButton;
     public static Button spd25, spd50, spd75, spd100, spd200, spd800, spd1600;
-    public static ToggleButton starButton;
+    public static ToggleButton starToggle, reverseToggle, fwdToggle;
     public static ObservableList<ReplayIdentifier> replaysList= FXCollections.observableArrayList();
     public static int currId = 0;
     public static ListView lv;
@@ -85,6 +85,8 @@ public class controlMain extends Application implements EventHandler<ActionEvent
         skipFwdBlackImg = new Image("file:images/skipFwd.png");
         skipBackBlackImg = new Image("file:images/skipBack.png");
         recBlackImg = new Image("file:images/recordBlack.png");
+        revBlackImg = new Image("file:images/reverseBlack.png");
+        fwdBlackImg = new Image("file:images/forwardBlack.png");
         
         sbarWidth.setPercentWidth(100);
         launch(args);
@@ -118,7 +120,7 @@ public class controlMain extends Application implements EventHandler<ActionEvent
         else if (event.getSource() == recallButton) recallReplay();
         else if (event.getSource() == saveButton) makeReplay();
         else if (event.getSource() == editButton) editReplayName();
-        else if (event.getSource() == starButton) replayToggleStar();
+        else if (event.getSource() == starToggle) replayToggleStar();
         else if (event.getSource() == deleteButton) removeReplay();
         else if (event.getSource() == clearButton) clearReplays();
         else if (event.getSource() == recordButton) startRecord();
@@ -234,6 +236,8 @@ public class controlMain extends Application implements EventHandler<ActionEvent
         
         ColumnConstraints colsLeft = new ColumnConstraints();
         colsLeft.setPercentWidth(100);
+        ColumnConstraints colsFwdRev = new ColumnConstraints();
+        colsFwdRev.setPercentWidth(70);
         RowConstraints rowsLeft = new RowConstraints();
         rowsLeft.setPercentHeight(100);
         //left column
@@ -242,7 +246,7 @@ public class controlMain extends Application implements EventHandler<ActionEvent
         recallButton = new Button("RECALL");
         saveButton = new Button("SAVE");
         editButton = new Button("EDIT");
-        starButton = new ToggleButton("STAR");
+        starToggle = new ToggleButton("STAR");
         
         deleteButton = new Button("DELETE");
         clearButton = new Button("CLEAR");
@@ -254,7 +258,7 @@ public class controlMain extends Application implements EventHandler<ActionEvent
         recallButton.setOnAction(this);
         saveButton.setOnAction(this);
         editButton.setOnAction(this);
-        starButton.setOnAction(this);
+        starToggle.setOnAction(this);
         
         deleteButton.setOnAction(this);
         clearButton.setOnAction(this);
@@ -267,7 +271,7 @@ public class controlMain extends Application implements EventHandler<ActionEvent
         leftGrid.add(recallButton, 0, 1, 2, 1);
         leftGrid.add(saveButton, 0, 2, 2, 1);
         leftGrid.add(editButton, 0, 3, 2, 1);
-        leftGrid.add(starButton, 0, 4, 2, 1);
+        leftGrid.add(starToggle, 0, 4, 2, 1);
         leftGrid.add(deleteButton, 0, 6, 2, 1);
         leftGrid.add(clearButton, 0, 7, 2, 1);
         
@@ -355,28 +359,55 @@ public class controlMain extends Application implements EventHandler<ActionEvent
         spd800.setOnAction(this);
         spd1600 = new Button("1600%");
         spd1600.setOnAction(this);
-        fwdButton = new Button();
-        fwdButton.setOnAction(this);
-        revButton = new Button();
-        revButton.setOnAction(this);
-        speedButtons.add(spd25, 0, 0, 2, 1);
-        speedButtons.add(spd50, 0, 1, 2, 1);
-        speedButtons.add(spd75, 0, 2, 2, 1);
-        speedButtons.add(spd100, 0, 3, 2, 1);
-        speedButtons.add(spd200, 0, 4, 2, 1);
-        speedButtons.add(spd800, 0, 5, 2, 1);
-        speedButtons.add(spd1600, 0, 6, 2, 1);
+        ToggleGroup directionGroup = new ToggleGroup();
+        reverseToggle = new ToggleButton();
+        reverseToggle.setToggleGroup(directionGroup);
+        reverseToggle.setOnAction(this);
+        reverseToggle.setGraphic(new ImageView(revBlackImg));
+        ((ImageView)reverseToggle.getGraphic()).setPreserveRatio(true);
+        ((ImageView)reverseToggle.getGraphic()).setFitHeight(70);
+        fwdToggle = new ToggleButton();
+        fwdToggle.setToggleGroup(directionGroup);
+        fwdToggle.setOnAction(this);
+        fwdToggle.setGraphic(new ImageView(fwdBlackImg));
+        ((ImageView)fwdToggle.getGraphic()).setPreserveRatio(true);
+        ((ImageView)fwdToggle.getGraphic()).setFitHeight(70);
+        directionGroup.selectedToggleProperty().addListener((obsVal, oldVal, newVal) -> {
+            if (newVal == null)
+                oldVal.setSelected(true);
+        });
+        
+        speedButtons.add(reverseToggle, 0, 0, 1, 7);
+        speedButtons.add(fwdToggle, 2, 0, 1, 7);
+        speedButtons.add(spd25, 1, 0, 1, 1);
+        speedButtons.add(spd50, 1, 1, 1, 1);
+        speedButtons.add(spd75, 1, 2, 1, 1);
+        speedButtons.add(spd100, 1, 3, 1, 1);
+        speedButtons.add(spd200, 1, 4, 1, 1);
+        speedButtons.add(spd800, 1, 5, 1, 1);
+        speedButtons.add(spd1600, 1, 6, 1, 1);
         
         for (int i = 0; i<speedButtons.getChildren().size(); i++) {
-            Button tempButton = (Button)(speedButtons.getChildren().get(i));
-            tempButton.setFont(prodSansBig);
-            tempButton.setStyle("-fx-font-size:30");
-            tempButton.setMaxWidth(Double.MAX_VALUE);
-            tempButton.setMaxHeight(Double.MAX_VALUE);
-            speedButtons.getRowConstraints().add(rowsLeft);
+            if (speedButtons.getChildren().get(i) instanceof Button){
+                Button tempButton = (Button)(speedButtons.getChildren().get(i));
+                tempButton.setFont(prodSansBig);
+                tempButton.setStyle("-fx-font-size:30");
+                tempButton.setMaxWidth(Double.MAX_VALUE);
+                tempButton.setMaxHeight(Double.MAX_VALUE);
+                speedButtons.getRowConstraints().add(rowsLeft);
+            } else if (speedButtons.getChildren().get(i) instanceof ToggleButton){
+                ToggleButton tempButton = (ToggleButton)(speedButtons.getChildren().get(i));
+                tempButton.setFont(prodSansBig);
+                tempButton.setStyle("-fx-font-size:30");
+                tempButton.setMaxWidth(Double.MAX_VALUE);
+                tempButton.setMaxHeight(Double.MAX_VALUE);
+                //speedButtons.getRowConstraints().add(rowsLeft);
+            }
         }
         
+        speedButtons.getColumnConstraints().add(colsFwdRev);
         speedButtons.getColumnConstraints().add(colsLeft);
+        speedButtons.getColumnConstraints().add(colsFwdRev);
         speedButtons.setPadding(new Insets(30,0,30,0));
         
         centerHolder.getChildren().add(leftGrid);
@@ -432,7 +463,7 @@ public class controlMain extends Application implements EventHandler<ActionEvent
                 }
             }
         });
-        lv.getSelectionModel().selectedItemProperty().addListener((v, oldValue, newValue) -> starButton.setSelected(((ReplayIdentifier)newValue).isStarred()));
+        lv.getSelectionModel().selectedItemProperty().addListener((v, oldValue, newValue) -> starToggle.setSelected(((ReplayIdentifier)newValue).isStarred()));
         spList.getChildren().add(lv);
         spList.setMargin(lv, new Insets(20));
         
@@ -550,6 +581,9 @@ public class controlMain extends Application implements EventHandler<ActionEvent
     public void shuttleSpeed(int speed) {
         for (int i = 0; i<hyperdecks.size(); i++) {
             if (hyperdecks.get(i).isManaged()) {
+                if (reverseToggle.isSelected()) {
+                    speed = -speed;
+                }
                 hyperdecks.get(i).say("shuttle: speed: " + speed);
             }
         }
@@ -558,6 +592,9 @@ public class controlMain extends Application implements EventHandler<ActionEvent
     public void playSpeed(int speed) {
         for (int i = 0; i<hyperdecks.size(); i++) {
             if (hyperdecks.get(i).isManaged()) {
+                if (reverseToggle.isSelected()) {
+                    speed = -speed;
+                }
                 hyperdecks.get(i).say("play: speed: " + speed);
             }
         }
