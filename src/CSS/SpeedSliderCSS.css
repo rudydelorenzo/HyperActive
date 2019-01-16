@@ -7,6 +7,17 @@ and open the template in the editor.
     Created on : 14-Jan-2019, 9:30:24 PM
     Author     : Rudy
 */
-.slider *.thumb {
-    -fx-background-image: url("/images/handle.png");
+#custom-slider .thumb {
+    -fx-background-image :url("/images/handle.png");
+    -fx-background-position: center center;
+    -fx-background-color: white;
+
+    -fx-padding: 50;
+
+    -fx-pref-height: 48;
+    -fx-pref-width: 96;
+}
+
+#custom-slider .track {
+    -fx-background-color: #2F2F2F;
 }

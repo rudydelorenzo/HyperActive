@@ -67,6 +67,8 @@ public class controlMain extends Application implements EventHandler<ActionEvent
     public static double xOffset = 0;
     public static double yOffset = 0;
     public static HBox centerHolder = new HBox(10);
+    public static HBox decorations;
+    public static BorderPane root = new BorderPane();
     public static Slider speedSlider;
     
     public static void main(String[] args) {
@@ -77,23 +79,23 @@ public class controlMain extends Application implements EventHandler<ActionEvent
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
-        stopImg = new Image("file:images/stop.png");
-        recImg = new Image("file:images/rec.png");
-        playImg = new Image("file:images/play.png");
-        prevImg = new Image("file:images/preview.png");
-        pauseImg = new Image("file:images/pause.png");
-        errImg = new Image("file:images/err.png");
-        shuttleImg = new Image("file:images/shuttle.png");
-        starImg = new Image("file:images/star.png");
-        noConnectionImg = new Image("file:images/noconnection2.png");
-        addImg = new Image("file:images/add.png");
-        playBlackImg = new Image("file:images/playBlack.png");
-        stopBlackImg = new Image("file:images/stopBlack.png");
-        skipFwdBlackImg = new Image("file:images/skipFwd.png");
-        skipBackBlackImg = new Image("file:images/skipBack.png");
-        recBlackImg = new Image("file:images/recordBlack.png");
-        revBlackImg = new Image("file:images/reverseBlack.png");
-        fwdBlackImg = new Image("file:images/forwardBlack.png");
+        stopImg = new Image("file:src/images/stop.png");
+        recImg = new Image("file:src/images/rec.png");
+        playImg = new Image("file:src/images/play.png");
+        prevImg = new Image("file:src/images/preview.png");
+        pauseImg = new Image("file:src/images/pause.png");
+        errImg = new Image("file:src/images/err.png");
+        shuttleImg = new Image("file:src/images/shuttle.png");
+        starImg = new Image("file:src/images/star.png");
+        noConnectionImg = new Image("file:src/images/noconnection2.png");
+        addImg = new Image("file:src/images/add.png");
+        playBlackImg = new Image("file:src/images/playBlack.png");
+        stopBlackImg = new Image("file:src/images/stopBlack.png");
+        skipFwdBlackImg = new Image("file:src/images/skipFwd.png");
+        skipBackBlackImg = new Image("file:src/images/skipBack.png");
+        recBlackImg = new Image("file:src/images/recordBlack.png");
+        revBlackImg = new Image("file:src/images/reverseBlack.png");
+        fwdBlackImg = new Image("file:src/images/forwardBlack.png");
         //handleImg = new Image("file:images/handle.png");
         
         sbarWidth.setPercentWidth(100);
@@ -104,19 +106,20 @@ public class controlMain extends Application implements EventHandler<ActionEvent
     public void start(Stage stage) {
         primaryStage = stage;
         primaryStage.setTitle("HyperActive " + version);
-        primaryStage.initStyle(StageStyle.UNDECORATED);
+        primaryStage.initStyle(StageStyle.TRANSPARENT);
         
         makeUI();
         
-        mainScene = new Scene(mainLayout, 1600, 900);
+        mainScene = new Scene(root, 1600, 900);
         mainScene.setOnKeyPressed(new EventHandler<KeyEvent>() {
 
             @Override
             public void handle(KeyEvent event) {
-                //replaysList.set(0, new ReplayIdentifier(replaysList.get(0).getId(), "newo-nameo"));
+                makeUI();
+                System.out.println("hello");
             }
         });     
-        
+        mainScene.setFill(Color.TRANSPARENT);
         primaryStage.setScene(mainScene);
         primaryStage.show();
     }
@@ -151,6 +154,19 @@ public class controlMain extends Application implements EventHandler<ActionEvent
         createControlButtons();
         createReplayList();
         createStatusBar();
+        
+        decorations = new HBox(new Text("hope is good"));
+        decorations.setAlignment(Pos.CENTER_RIGHT);
+        decorations.setId("hbox");
+        decorations.getStylesheets().add("/CSS/decorationsStylingCSS.css");
+        root.setCenter(mainLayout);
+        if (primaryStage.maximizedProperty().getValue() == false) {
+            root.setTop(decorations);
+        } else {
+            root.setTop(null);
+        }
+        
+        root.setStyle("-fx-background-color: transparent;");
     }
     
     public void createStatusBar() {
@@ -226,8 +242,10 @@ public class controlMain extends Application implements EventHandler<ActionEvent
                     if(mouseEvent.getClickCount() == 2){
                         if (primaryStage.maximizedProperty().getValue() == true) {
                             primaryStage.setMaximized(false);
+                            makeUI();
                         } else {
                             primaryStage.setMaximized(true);
+                            makeUI();
                         }
                     }
                 }
@@ -424,6 +442,7 @@ public class controlMain extends Application implements EventHandler<ActionEvent
         //speed slider
         speedSlider = new Slider(0, 200, 100);
         speedSlider.setSnapToTicks(true);
+        speedSlider.setId("custom-slider");
         speedSlider.getStylesheets().add("/CSS/SpeedSliderCSS.css");
         speedSlider.setOrientation(Orientation.VERTICAL);
         speedSlider.setShowTickMarks(true);
@@ -657,7 +676,11 @@ public class controlMain extends Application implements EventHandler<ActionEvent
         
         StackPane parentSp = new StackPane(hb);
         parentSp.setPadding(new Insets(20));
-        parentSp.setBackground(bottomGray);
+        if (primaryStage.maximizedProperty().getValue() == false) {
+            parentSp.setStyle("-fx-background-radius: 0 0 10 10; -fx-background-color : #b0bec5;");
+        } else {
+            parentSp.setBackground(bottomGray);
+        }
         
         Text ipLabel = new Text("IP");
         Text portLabel = new Text("Port");
@@ -773,6 +796,7 @@ public class controlMain extends Application implements EventHandler<ActionEvent
         
         hb.setAlignment(Pos.CENTER);
         
+        //mainLayout.setStyle("-fx-background-color: transparent;");
         mainLayout.setBottom(parentSp);
     }
 }
