@@ -8,9 +8,31 @@ and open the template in the editor.
     Author     : Rudy
 */
 
-#hbox {
-    -fx-pref-height: 25;
+#decorations {
+    -fx-pref-height: 33;
     -fx-border-radius: 10 10 0 0;
     -fx-background-radius: 10 10 0 0;
     -fx-background-color : #212121;
+}
+
+#closeButton {
+    -fx-image: url("/images/close.png");
+}
+
+#closeButton:hover {
+    -fx-image: url("/images/closePressed.png");
+}
+
+#maximizeButton {
+    -fx-image: url("/images/fullscreen.png");
+}
+#maximizeButton:hover {
+    -fx-image: url("/images/fullscreenPressed.png");
+}
+
+#minimizeButton {
+    -fx-image: url("/images/minimize.png");
+}
+#minimizeButton:hover {
+    -fx-image: url("/images/minimizePressed.png");
 }

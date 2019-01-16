@@ -57,7 +57,7 @@ public class controlMain extends Application implements EventHandler<ActionEvent
     public static RowConstraints statusBarItemHeight = new RowConstraints();
     public static DropShadow dropShadow = new DropShadow();
     public static DropShadow dropShadowBottomOnly = new DropShadow();
-    public static Image stopImg, playImg, prevImg, pauseImg, recImg, errImg, shuttleImg, noConnectionImg, addImg, starImg, playBlackImg, stopBlackImg, recBlackImg, skipFwdBlackImg, skipBackBlackImg, revBlackImg, fwdBlackImg, handleImg;
+    public static Image stopImg, playImg, prevImg, pauseImg, recImg, errImg, shuttleImg, noConnectionImg, addImg, starImg, playBlackImg, stopBlackImg, recBlackImg, skipFwdBlackImg, skipBackBlackImg, revBlackImg, fwdBlackImg, handleImg, decorImg, closeImg;
     public static Button s1Button, s2Button, recallButton, saveButton, editButton, deleteButton, clearButton, recordButton, stopButton, playButton, nextClip, prevClip, fwdButton, revButton, custom1Button, custom2Button, addHDButton;
     public static Button spd25, spd50, spd75, spd100, spd200, spd800, spd1600;
     public static ToggleButton starToggle, reverseToggle, fwdToggle;
@@ -67,7 +67,7 @@ public class controlMain extends Application implements EventHandler<ActionEvent
     public static double xOffset = 0;
     public static double yOffset = 0;
     public static HBox centerHolder = new HBox(10);
-    public static HBox decorations;
+    public static HBox decorButtons;
     public static BorderPane root = new BorderPane();
     public static Slider speedSlider;
     
@@ -96,6 +96,8 @@ public class controlMain extends Application implements EventHandler<ActionEvent
         recBlackImg = new Image("file:src/images/recordBlack.png");
         revBlackImg = new Image("file:src/images/reverseBlack.png");
         fwdBlackImg = new Image("file:src/images/forwardBlack.png");
+        decorImg = new Image("file:src/images/decoration.png", 270, 50, true, true);
+        //closeImg = new Image("file:src/images/close.png");
         //handleImg = new Image("file:images/handle.png");
         
         sbarWidth.setPercentWidth(100);
@@ -155,18 +157,109 @@ public class controlMain extends Application implements EventHandler<ActionEvent
         createReplayList();
         createStatusBar();
         
-        decorations = new HBox(new Text("hope is good"));
-        decorations.setAlignment(Pos.CENTER_RIGHT);
-        decorations.setId("hbox");
+        GridPane decorations = new GridPane();
+        ColumnConstraints fullCol = new ColumnConstraints();
+        fullCol.setPercentWidth(100);
+        RowConstraints fullRow = new RowConstraints();
+        fullRow.setPercentHeight(100);
+        decorations.getColumnConstraints().addAll(fullCol, fullCol, fullCol);
+        decorations.getRowConstraints().addAll(fullRow);
+        decorButtons = new HBox(15);
+        decorButtons.setPadding(new Insets(0,8,0,8));
+        decorButtons.setAlignment(Pos.CENTER_RIGHT);
+        ImageView closeIV = new ImageView();
+        closeIV.setPreserveRatio(true);
+        closeIV.setFitHeight(15);
+        closeIV.setId("closeButton");
+        closeIV.setStyle("/CSS/decorationsStylingCSS.css");
+        closeIV.setOnMouseClicked(new EventHandler<MouseEvent>() {
+            @Override
+            public void handle(MouseEvent mouseEvent) {
+                if(mouseEvent.getButton().equals(MouseButton.PRIMARY)){
+                    //primaryStage.close();
+                    Timeline timeline = new Timeline();
+                    KeyFrame key = new KeyFrame(Duration.millis(500),
+                                   new KeyValue (primaryStage.getScene().getRoot().opacityProperty(), 0)); 
+                    timeline.getKeyFrames().add(key);   
+                    timeline.setOnFinished((ae) -> close()); 
+                    timeline.play();
+                }
+            }
+        });
+        //
+        ImageView maxIV = new ImageView();
+        maxIV.setPreserveRatio(true);
+        maxIV.setFitWidth(15);
+        maxIV.setId("maximizeButton");
+        maxIV.setStyle("/CSS/decorationsStylingCSS.css");
+        maxIV.setOnMouseClicked(new EventHandler<MouseEvent>() {
+            @Override
+            public void handle(MouseEvent mouseEvent) {
+                if(mouseEvent.getButton().equals(MouseButton.PRIMARY)){
+                    primaryStage.setMaximized(true);
+                    makeUI();
+                }
+            }
+        });
+        ImageView minIV = new ImageView();
+        minIV.setPreserveRatio(true);
+        minIV.setFitWidth(15);
+        minIV.setId("minimizeButton");
+        minIV.setStyle("/CSS/decorationsStylingCSS.css");
+        minIV.setOnMouseClicked(new EventHandler<MouseEvent>() {
+            @Override
+            public void handle(MouseEvent mouseEvent) {
+                if(mouseEvent.getButton().equals(MouseButton.PRIMARY)){
+                    primaryStage.setIconified(true);
+                }
+            }
+        });
+        decorButtons.getChildren().add(minIV);
+        decorButtons.getChildren().add(maxIV);
+        decorButtons.getChildren().add(closeIV);
+        decorations.setId("decorations");
         decorations.getStylesheets().add("/CSS/decorationsStylingCSS.css");
+        ImageView ivDecor = new ImageView(decorImg);
+        ivDecor.setPreserveRatio(true);
+        ivDecor.setFitHeight(20);
+        StackPane decorImgHolder = new StackPane(ivDecor);
+        decorImgHolder.setAlignment(Pos.CENTER);
+        decorations.add(decorImgHolder, 1, 0);
+        decorations.add(decorButtons, 2, 0);
+        
+        decorations.setOnMousePressed(new EventHandler<MouseEvent>() {
+            @Override
+            public void handle(MouseEvent event) {
+                xOffset = event.getSceneX();
+                yOffset = event.getSceneY();
+            }
+        });
+        decorations.setOnMouseDragged(new EventHandler<MouseEvent>() {
+            @Override
+            public void handle(MouseEvent event) {
+                if (primaryStage.maximizedProperty().getValue() == false) {
+                    primaryStage.setX(event.getScreenX() - xOffset);
+                    primaryStage.setY(event.getScreenY() - yOffset);
+                }
+                
+            }
+        });
+        
         root.setCenter(mainLayout);
         if (primaryStage.maximizedProperty().getValue() == false) {
             root.setTop(decorations);
+            root.setStyle("-fx-background-color: transparent; -fx-padding: 20px");
+            DropShadow windowShadow = new DropShadow();
+            windowShadow.setBlurType(BlurType.GAUSSIAN);
+            windowShadow.setColor(Color.BLACK);
+            windowShadow.setHeight(16);
+            windowShadow.setWidth(16);
+            root.setEffect(windowShadow);
         } else {
             root.setTop(null);
+            root.setStyle("-fx-background-color: transparent;");
         }
         
-        root.setStyle("-fx-background-color: transparent;");
     }
     
     public void createStatusBar() {
@@ -218,23 +311,6 @@ public class controlMain extends Application implements EventHandler<ActionEvent
         
         topGrid.setEffect(dropShadow);
         
-        topGrid.setOnMousePressed(new EventHandler<MouseEvent>() {
-            @Override
-            public void handle(MouseEvent event) {
-                xOffset = event.getSceneX();
-                yOffset = event.getSceneY();
-            }
-        });
-        topGrid.setOnMouseDragged(new EventHandler<MouseEvent>() {
-            @Override
-            public void handle(MouseEvent event) {
-                if (primaryStage.maximizedProperty().getValue() == false) {
-                    primaryStage.setX(event.getScreenX() - xOffset);
-                    primaryStage.setY(event.getScreenY() - yOffset);
-                }
-                
-            }
-        });
         topGrid.setOnMouseClicked(new EventHandler<MouseEvent>() {
             @Override
             public void handle(MouseEvent mouseEvent) {
@@ -798,5 +874,11 @@ public class controlMain extends Application implements EventHandler<ActionEvent
         
         //mainLayout.setStyle("-fx-background-color: transparent;");
         mainLayout.setBottom(parentSp);
+    }
+    
+    public void close() {
+        primaryStage.close();
+        Platform.exit();
+        System.exit(0);
     }
 }
