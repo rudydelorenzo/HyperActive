@@ -58,6 +58,7 @@ public class controlMain extends Application implements EventHandler<ActionEvent
     public static DropShadow dropShadow = new DropShadow();
     public static DropShadow dropShadowBottomOnly = new DropShadow();
     public static Image stopImg, playImg, prevImg, pauseImg, recImg, errImg, shuttleImg, noConnectionImg, addImg, starImg, playBlackImg, stopBlackImg, recBlackImg, skipFwdBlackImg, skipBackBlackImg, revBlackImg, fwdBlackImg, handleImg, decorImg, closeImg;
+    public static Image iconImg, smallIconImg;
     public static Button s1Button, s2Button, recallButton, saveButton, editButton, deleteButton, clearButton, recordButton, stopButton, playButton, nextClip, prevClip, fwdButton, revButton, custom1Button, custom2Button, addHDButton;
     public static Button spd25, spd50, spd75, spd100, spd200, spd800, spd1600;
     public static ToggleButton starToggle, reverseToggle, fwdToggle;
@@ -97,8 +98,8 @@ public class controlMain extends Application implements EventHandler<ActionEvent
         revBlackImg = new Image("file:src/images/reverseBlack.png");
         fwdBlackImg = new Image("file:src/images/forwardBlack.png");
         decorImg = new Image("file:src/images/decoration.png", 270, 50, true, true);
-        //closeImg = new Image("file:src/images/close.png");
-        //handleImg = new Image("file:images/handle.png");
+        iconImg = new Image("file:src/images/icon.png");
+        smallIconImg = new Image("file:src/images/icon.png", 50, 50, true, true);
         
         sbarWidth.setPercentWidth(100);
         launch(args);
@@ -108,6 +109,7 @@ public class controlMain extends Application implements EventHandler<ActionEvent
     public void start(Stage stage) {
         primaryStage = stage;
         primaryStage.setTitle("HyperActive " + version);
+        primaryStage.getIcons().add(iconImg);
         primaryStage.initStyle(StageStyle.TRANSPARENT);
         
         makeUI();
@@ -222,7 +224,12 @@ public class controlMain extends Application implements EventHandler<ActionEvent
         ImageView ivDecor = new ImageView(decorImg);
         ivDecor.setPreserveRatio(true);
         ivDecor.setFitHeight(20);
-        StackPane decorImgHolder = new StackPane(ivDecor);
+        ImageView ivLogo = new ImageView(smallIconImg);
+        ivLogo.setPreserveRatio(true);
+        ivLogo.setFitHeight(20);
+        HBox decorImgHolder = new HBox(10);
+        decorImgHolder.getChildren().add(ivLogo);
+        decorImgHolder.getChildren().add(ivDecor);
         decorImgHolder.setAlignment(Pos.CENTER);
         decorations.add(decorImgHolder, 1, 0);
         decorations.add(decorButtons, 2, 0);
