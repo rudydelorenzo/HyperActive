@@ -119,7 +119,7 @@ public class controlMain extends Application implements EventHandler<ActionEvent
 
             @Override
             public void handle(KeyEvent event) {
-                makeUI();
+                //makeUI();
                 System.out.println("hello");
             }
         });     
