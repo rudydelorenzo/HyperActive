@@ -63,6 +63,7 @@ public class controlMain extends Application implements EventHandler<ActionEvent
     public static Button spd25, spd50, spd75, spd100, spd200, spd800, spd1600;
     public static ToggleButton starToggle, reverseToggle, fwdToggle;
     public static ObservableList<ReplayIdentifier> replaysList= FXCollections.observableArrayList();
+    public static ObservableList<ReplayIdentifier> starredList= FXCollections.observableArrayList();
     public static int currId = 0;
     public static ListView lv;
     public static double xOffset = 0;
@@ -777,6 +778,7 @@ public class controlMain extends Application implements EventHandler<ActionEvent
         Circle fillCircle = new Circle();
         fillCircle.setRadius(30);
         fillCircle.setFill(Color.web("#00796b"));
+        
         addHDButton = new Button("");
         addHDButton.setGraphic(new ImageView(addImg));
         ((ImageView)addHDButton.getGraphic()).setPreserveRatio(true);
