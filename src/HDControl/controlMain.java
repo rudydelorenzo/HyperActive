@@ -37,7 +37,7 @@ import javafx.util.StringConverter;
 
 public class controlMain extends Application implements EventHandler<ActionEvent>, RefreshListener {
     
-    public static final String version = "0.0.1a";
+    public static final String version = "0.0.5a";
     public static Stage primaryStage;
     public static Socket client;
     public static Scene mainScene;
@@ -58,12 +58,12 @@ public class controlMain extends Application implements EventHandler<ActionEvent
     public static DropShadow dropShadow = new DropShadow();
     public static DropShadow dropShadowBottomOnly = new DropShadow();
     public static Image stopImg, playImg, prevImg, pauseImg, recImg, errImg, shuttleImg, noConnectionImg, addImg, starImg, playBlackImg, stopBlackImg, recBlackImg, skipFwdBlackImg, skipBackBlackImg, revBlackImg, fwdBlackImg, handleImg, decorImg, closeImg;
-    public static Image iconImg, smallIconImg;
+    public static Image iconImg, smallIconImg, searchImg, clearImg;
     public static Button s1Button, s2Button, recallButton, saveButton, editButton, deleteButton, clearButton, recordButton, stopButton, playButton, nextClip, prevClip, fwdButton, revButton, custom1Button, custom2Button, addHDButton;
-    public static Button spd25, spd50, spd75, spd100, spd200, spd800, spd1600;
-    public static ToggleButton starToggle, reverseToggle, fwdToggle;
+    public static Button spd25, spd50, spd75, spd100, spd200, spd800, spd1600, searchButton, clearSearchButton;
+    public static ToggleButton starToggle, reverseToggle, fwdToggle, starFilterToggle;
     public static ObservableList<ReplayIdentifier> replaysList= FXCollections.observableArrayList();
-    public static ObservableList<ReplayIdentifier> starredList= FXCollections.observableArrayList();
+    public static ObservableList<ReplayIdentifier> foundList= FXCollections.observableArrayList();
     public static int currId = 0;
     public static ListView lv;
     public static double xOffset = 0;
@@ -72,6 +72,7 @@ public class controlMain extends Application implements EventHandler<ActionEvent
     public static HBox decorButtons;
     public static BorderPane root = new BorderPane();
     public static Slider speedSlider;
+    public static TextField searchField;
     
     public static void main(String[] args) {
         System.setProperty("prism.lcdtext", "false");
@@ -81,26 +82,28 @@ public class controlMain extends Application implements EventHandler<ActionEvent
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
-        stopImg = new Image("file:src/images/stop.png");
-        recImg = new Image("file:src/images/rec.png");
-        playImg = new Image("file:src/images/play.png");
-        prevImg = new Image("file:src/images/preview.png");
-        pauseImg = new Image("file:src/images/pause.png");
-        errImg = new Image("file:src/images/err.png");
-        shuttleImg = new Image("file:src/images/shuttle.png");
-        starImg = new Image("file:src/images/star.png");
-        noConnectionImg = new Image("file:src/images/noconnection2.png");
-        addImg = new Image("file:src/images/add.png");
-        playBlackImg = new Image("file:src/images/playBlack.png");
-        stopBlackImg = new Image("file:src/images/stopBlack.png");
-        skipFwdBlackImg = new Image("file:src/images/skipFwd.png");
-        skipBackBlackImg = new Image("file:src/images/skipBack.png");
-        recBlackImg = new Image("file:src/images/recordBlack.png");
-        revBlackImg = new Image("file:src/images/reverseBlack.png");
-        fwdBlackImg = new Image("file:src/images/forwardBlack.png");
+        stopImg = new Image("file:src/images/straight/stop.png");
+        recImg = new Image("file:src/images/straight/rec.png");
+        playImg = new Image("file:src/images/straight/play.png");
+        prevImg = new Image("file:src/images/straight/preview.png");
+        pauseImg = new Image("file:src/images/straight/pause.png");
+        errImg = new Image("file:src/images/straight/err.png");
+        shuttleImg = new Image("file:src/images/straight/shuttle.png");
+        starImg = new Image("file:src/images/rounded/star.png", 100, 100, true, true);
+        noConnectionImg = new Image("file:src/images/straight/noconnection2.png");
+        addImg = new Image("file:src/images/straight/add.png");
+        playBlackImg = new Image("file:src/images/rounded/playBlack.png");
+        stopBlackImg = new Image("file:src/images/rounded/stopBlack.png");
+        skipFwdBlackImg = new Image("file:src/images/rounded/skipFwd.png");
+        skipBackBlackImg = new Image("file:src/images/rounded/skipBack.png");
+        recBlackImg = new Image("file:src/images/rounded/recordBlack.png");
+        revBlackImg = new Image("file:src/images/rounded/reverseBlack.png");
+        fwdBlackImg = new Image("file:src/images/rounded/forwardBlack.png");
         decorImg = new Image("file:src/images/decoration.png", 270, 50, true, true);
         iconImg = new Image("file:src/images/icon.png");
         smallIconImg = new Image("file:src/images/icon.png", 50, 50, true, true);
+        searchImg = new Image("file:src/images/rounded/search.png", 50, 50, true, true);
+        clearImg = new Image("file:src/images/rounded/clear.png", 50, 50, true, true);
         
         sbarWidth.setPercentWidth(100);
         launch(args);
@@ -151,6 +154,28 @@ public class controlMain extends Application implements EventHandler<ActionEvent
         else if (event.getSource() == spd200) shuttleSpeed(200);
         else if (event.getSource() == spd800) shuttleSpeed(800);
         else if (event.getSource() == spd1600) shuttleSpeed(1600);
+        else if (event.getSource() == starFilterToggle) {
+            if (starFilterToggle.isSelected()) {
+                foundList.clear();
+                for (int i = 0; i<lv.getItems().size(); i++) {
+                    if (((ReplayIdentifier)lv.getItems().get(i)).isStarred()) foundList.add(replaysList.get(i));
+                }
+                lv.setItems(foundList);
+            } else {
+                foundList.clear();
+                lv.setItems(replaysList);
+            }
+        } else if (event.getSource() == searchButton) {
+            starFilterToggle.setSelected(false);
+            foundList.clear();
+            for (int i = 0; i<replaysList.size(); i++) {
+                if (((ReplayIdentifier)replaysList.get(i)).getName().toLowerCase().contains(searchField.getText().toLowerCase())) foundList.add(replaysList.get(i));
+            }
+            lv.setItems(foundList);
+        } else if (event.getSource() == clearSearchButton) {
+            foundList.clear();
+            lv.setItems(replaysList);
+        }
         
     }
     
@@ -598,8 +623,8 @@ public class controlMain extends Application implements EventHandler<ActionEvent
     }
     
     public void createReplayList() {
-        StackPane spList = new StackPane();
-        spList.setPrefWidth(400);
+        VBox vbList = new VBox();
+        vbList.setPrefWidth(400);
         lv = new ListView();
         lv.setItems(replaysList);
         lv.setCellFactory(new Callback<ListView<ReplayIdentifier>, ListCell<ReplayIdentifier>>() {
@@ -618,12 +643,47 @@ public class controlMain extends Application implements EventHandler<ActionEvent
             }
         });
         lv.getSelectionModel().selectedItemProperty().addListener((v, oldValue, newValue) -> starToggle.setSelected(((ReplayIdentifier)newValue).isStarred()));
-        spList.getChildren().add(lv);
-        spList.setMargin(lv, new Insets(20));
         
-        spList.setBackground(defaultBg);
+        HBox hbSearch = new HBox(8);
+        searchField = new TextField();
+        searchField.setPrefHeight(40);
+        searchField.getStylesheets().add("/CSS/SearchTextBoxCSS.css");
+        searchButton = new Button("");
+        searchButton.setPrefHeight(40);
+        searchButton.setGraphic(new ImageView(searchImg));
+        ((ImageView)searchButton.getGraphic()).setPreserveRatio(true);
+        ((ImageView)searchButton.getGraphic()).setFitHeight(25);
+        searchButton.setOnAction(this);
+        clearSearchButton = new Button("");
+        clearSearchButton.setPrefHeight(40);
+        clearSearchButton.setGraphic(new ImageView(clearImg));
+        ((ImageView)clearSearchButton.getGraphic()).setPreserveRatio(true);
+        ((ImageView)clearSearchButton.getGraphic()).setFitHeight(25);
+        clearSearchButton.setOnAction(this);
+        starFilterToggle = new ToggleButton("");
+        starFilterToggle.setOnAction(this);
+        starFilterToggle.setPrefHeight(40);
+        starFilterToggle.setGraphic(new ImageView(starImg));
+        ((ImageView)starFilterToggle.getGraphic()).setPreserveRatio(true);
+        ((ImageView)starFilterToggle.getGraphic()).setFitHeight(25);
+        hbSearch.getChildren().add(searchField);
+        hbSearch.getChildren().add(searchButton);
+        hbSearch.getChildren().add(clearSearchButton);
+        hbSearch.getChildren().add(starFilterToggle);
+        hbSearch.setHgrow(searchField, Priority.ALWAYS);
+        hbSearch.setHgrow(searchButton, Priority.ALWAYS);
+        hbSearch.setHgrow(clearSearchButton, Priority.ALWAYS);
+        hbSearch.setHgrow(starFilterToggle, Priority.ALWAYS);
         
-        centerHolder.getChildren().add(0, spList);
+        vbList.getChildren().add(lv);
+        vbList.setMargin(lv, new Insets(20,20,0,20));
+        vbList.setVgrow(lv, Priority.ALWAYS);
+        vbList.getChildren().add(hbSearch);
+        vbList.setMargin(hbSearch, new Insets(20));
+        
+        vbList.setBackground(defaultBg);
+        
+        centerHolder.getChildren().add(0, vbList);
     }
     
     public void makeReplay() {
