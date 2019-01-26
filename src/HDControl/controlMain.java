@@ -175,6 +175,7 @@ public class controlMain extends Application implements EventHandler<ActionEvent
         closeIV.setFitHeight(15);
         closeIV.setId("closeButton");
         closeIV.setStyle("/CSS/decorationsStylingCSS.css");
+        closeIV.setPickOnBounds(true);
         closeIV.setOnMouseClicked(new EventHandler<MouseEvent>() {
             @Override
             public void handle(MouseEvent mouseEvent) {
@@ -195,6 +196,7 @@ public class controlMain extends Application implements EventHandler<ActionEvent
         maxIV.setFitWidth(15);
         maxIV.setId("maximizeButton");
         maxIV.setStyle("/CSS/decorationsStylingCSS.css");
+        maxIV.setPickOnBounds(true);
         maxIV.setOnMouseClicked(new EventHandler<MouseEvent>() {
             @Override
             public void handle(MouseEvent mouseEvent) {
@@ -209,6 +211,7 @@ public class controlMain extends Application implements EventHandler<ActionEvent
         minIV.setFitWidth(15);
         minIV.setId("minimizeButton");
         minIV.setStyle("/CSS/decorationsStylingCSS.css");
+        minIV.setPickOnBounds(true);
         minIV.setOnMouseClicked(new EventHandler<MouseEvent>() {
             @Override
             public void handle(MouseEvent mouseEvent) {
