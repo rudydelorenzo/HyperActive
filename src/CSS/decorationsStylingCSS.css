@@ -16,23 +16,23 @@ and open the template in the editor.
 }
 
 #closeButton {
-    -fx-image: url("/images/close.png");
+    -fx-image: url("/images/straight/close.png");
 }
 
 #closeButton:hover {
-    -fx-image: url("/images/closePressed.png");
+    -fx-image: url("/images/straight/closePressed.png");
 }
 
 #maximizeButton {
-    -fx-image: url("/images/fullscreen.png");
+    -fx-image: url("/images/straight/fullscreen.png");
 }
 #maximizeButton:hover {
-    -fx-image: url("/images/fullscreenPressed.png");
+    -fx-image: url("/images/straight/fullscreenPressed.png");
 }
 
 #minimizeButton {
-    -fx-image: url("/images/minimize.png");
+    -fx-image: url("/images/straight/minimize.png");
 }
 #minimizeButton:hover {
-    -fx-image: url("/images/minimizePressed.png");
+    -fx-image: url("/images/straight/minimizePressed.png");
 }

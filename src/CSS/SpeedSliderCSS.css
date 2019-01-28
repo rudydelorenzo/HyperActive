@@ -8,7 +8,7 @@ and open the template in the editor.
     Author     : Rudy
 */
 #custom-slider .thumb {
-    -fx-background-image :url("/images/handle.png");
+    -fx-background-image :url("/images/rounded/handle.png");
     -fx-background-position: center center;
     -fx-background-color: white;
 
