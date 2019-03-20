@@ -2,6 +2,9 @@ package HDControl;
 
 import java.io.*;
 import java.net.*;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -37,12 +40,13 @@ import javafx.util.StringConverter;
 
 public class controlMain extends Application implements EventHandler<ActionEvent>, RefreshListener {
     
-    public static final String version = "0.0.5a";
+    public static final String version = "0.0.6a";
     public static Stage primaryStage;
     public static Socket client;
     public static Scene mainScene;
     public static InetAddress ip;
     public static ArrayList<Hyperdeck> hyperdecks = new ArrayList();
+    public static ArrayList<User> users = new ArrayList();
     public static Background recRed = new Background(new BackgroundFill(Color.web("#d32f2f"), CornerRadii.EMPTY, Insets.EMPTY));
     public static Background playBlue = new Background(new BackgroundFill(Color.web("#1976d2"), CornerRadii.EMPTY, Insets.EMPTY));
     public static Background unkPurple = new Background(new BackgroundFill(Color.web("#6a1b9a"), CornerRadii.EMPTY, Insets.EMPTY));
@@ -58,9 +62,10 @@ public class controlMain extends Application implements EventHandler<ActionEvent
     public static DropShadow dropShadow = new DropShadow();
     public static DropShadow dropShadowBottomOnly = new DropShadow();
     public static Image stopImg, playImg, prevImg, pauseImg, recImg, errImg, shuttleImg, noConnectionImg, addImg, starImg, playBlackImg, stopBlackImg, recBlackImg, skipFwdBlackImg, skipBackBlackImg, revBlackImg, fwdBlackImg, handleImg, decorImg, closeImg;
-    public static Image iconImg, smallIconImg, searchImg, clearImg;
+    public static Image iconImg, smallIconImg, searchImg, clearImg, loginLogoImg;
     public static Button s1Button, s2Button, recallButton, saveButton, editButton, deleteButton, clearButton, recordButton, stopButton, playButton, nextClip, prevClip, fwdButton, revButton, custom1Button, custom2Button, addHDButton;
     public static Button spd25, spd50, spd75, spd100, spd200, spd800, spd1600, searchButton, clearSearchButton;
+    public static Button loginButton, closeButton;
     public static ToggleButton starToggle, reverseToggle, fwdToggle, starFilterToggle;
     public static ObservableList<ReplayIdentifier> replaysList= FXCollections.observableArrayList();
     public static ObservableList<ReplayIdentifier> foundList= FXCollections.observableArrayList();
@@ -71,8 +76,12 @@ public class controlMain extends Application implements EventHandler<ActionEvent
     public static HBox centerHolder = new HBox(10);
     public static HBox decorButtons;
     public static BorderPane root = new BorderPane();
+    public static BorderPane loginRoot = new BorderPane();
     public static Slider speedSlider;
     public static TextField searchField;
+    public static TextField userNameField;
+    public static PasswordField passwordField;
+    public static StackPane loginWindowContent = new StackPane();
     
     public static void main(String[] args) {
         System.setProperty("prism.lcdtext", "false");
@@ -100,10 +109,14 @@ public class controlMain extends Application implements EventHandler<ActionEvent
         revBlackImg = new Image("file:src/images/rounded/reverseBlack.png");
         fwdBlackImg = new Image("file:src/images/rounded/forwardBlack.png");
         decorImg = new Image("file:src/images/decoration.png", 270, 50, true, true);
+        loginLogoImg = new Image("file:src/images/decoration.png");
         iconImg = new Image("file:src/images/icon.png");
         smallIconImg = new Image("file:src/images/icon.png", 50, 50, true, true);
         searchImg = new Image("file:src/images/rounded/search.png", 50, 50, true, true);
         clearImg = new Image("file:src/images/rounded/clear.png", 50, 50, true, true);
+        
+        //load logins
+        loadFile("logins.csv", users);
         
         sbarWidth.setPercentWidth(100);
         launch(args);
@@ -112,29 +125,36 @@ public class controlMain extends Application implements EventHandler<ActionEvent
     @Override
     public void start(Stage stage) {
         primaryStage = stage;
-        primaryStage.setTitle("HyperActive " + version);
-        primaryStage.getIcons().add(iconImg);
         primaryStage.initStyle(StageStyle.TRANSPARENT);
         
-        makeUI();
+        showLoginWindow();
         
+        primaryStage.show();
+    }
+    
+    public void showControlWindow() {
+        primaryStage.setTitle("HyperActive " + version);
+        primaryStage.getIcons().add(iconImg);
+        makeControlUI();
         mainScene = new Scene(root, 1600, 900);
-        mainScene.setOnKeyPressed(new EventHandler<KeyEvent>() {
-
-            @Override
-            public void handle(KeyEvent event) {
-                //makeUI();
-                System.out.println("hello");
-            }
-        });     
         mainScene.setFill(Color.TRANSPARENT);
         primaryStage.setScene(mainScene);
-        primaryStage.show();
+    }
+    
+    public void showLoginWindow() {
+        primaryStage.setTitle("HyperActive " + version + " | Login");
+        primaryStage.getIcons().add(iconImg);
+        makeLoginUI();
+        mainScene = new Scene(loginRoot, 700, 300);
+        mainScene.setFill(Color.TRANSPARENT);
+        primaryStage.setScene(mainScene);
     }
     
     @Override
     public void handle(ActionEvent event) {
-        if (event.getSource() == s1Button) switchToSlot(1);
+        if (event.getSource() == loginButton) login();
+        else if (event.getSource() == closeButton) close();
+        else if (event.getSource() == s1Button) switchToSlot(1);
         else if (event.getSource() == s2Button) switchToSlot(2);
         else if (event.getSource() == recallButton) recallReplay();
         else if (event.getSource() == saveButton) makeReplay();
@@ -179,7 +199,7 @@ public class controlMain extends Application implements EventHandler<ActionEvent
         
     }
     
-    public void makeUI() {
+    public void makeControlUI() {
         createBottom();
         createControlButtons();
         createReplayList();
@@ -227,7 +247,7 @@ public class controlMain extends Application implements EventHandler<ActionEvent
             public void handle(MouseEvent mouseEvent) {
                 if(mouseEvent.getButton().equals(MouseButton.PRIMARY)){
                     primaryStage.setMaximized(true);
-                    makeUI();
+                    makeControlUI();
                 }
             }
         });
@@ -354,10 +374,10 @@ public class controlMain extends Application implements EventHandler<ActionEvent
                     if(mouseEvent.getClickCount() == 2){
                         if (primaryStage.maximizedProperty().getValue() == true) {
                             primaryStage.setMaximized(false);
-                            makeUI();
+                            makeControlUI();
                         } else {
                             primaryStage.setMaximized(true);
-                            makeUI();
+                            makeControlUI();
                         }
                     }
                 }
@@ -926,7 +946,7 @@ public class controlMain extends Application implements EventHandler<ActionEvent
         ParallelTransition pt = new ParallelTransition(fadeOutResult, fadeOutFill);         
         SequentialTransition st = new SequentialTransition(fadeInCircle, enlargeCircle, fadeInResult, pauseAndReset, pt);
         st.setOnFinished((e) -> {
-            makeUI();
+            makeControlUI();
         });
         addHDButton.setOnMouseClicked(new EventHandler<MouseEvent>() {
             @Override
@@ -946,6 +966,161 @@ public class controlMain extends Application implements EventHandler<ActionEvent
         
         //mainLayout.setStyle("-fx-background-color: transparent;");
         mainLayout.setBottom(parentSp);
+    }
+    
+    public void makeLoginUI() {
+        BorderPane loginMain = new BorderPane();
+        loginWindowContent.getChildren().add(loginMain);
+        loginMain.setBackground(new Background(new BackgroundFill(Color.web("#0f0f0f"), CornerRadii.EMPTY, Insets.EMPTY)));
+        loginMain.setEffect(dropShadow);
+        ImageView bigLogoIV = new ImageView();
+        bigLogoIV.setPreserveRatio(true);
+        bigLogoIV.setImage(loginLogoImg);
+        bigLogoIV.setFitWidth(500);
+        HBox imageHolder = new HBox(bigLogoIV);
+        imageHolder.setPadding(new Insets(12));
+        imageHolder.setAlignment(Pos.CENTER);
+        loginMain.setTop(imageHolder);
+        
+        GridPane loginInfo = new GridPane();
+        loginInfo.setHgap(10);
+        loginInfo.setVgap(8);
+        loginInfo.setPadding(new Insets(10));
+        Text userNameLabel = new Text("Username:");
+        userNameLabel.setFont(prodSansBig);
+        userNameLabel.setStyle("-fx-fill: #f9f9f9;"
+                + "-fx-font-size: 14pt;");
+        userNameField = new TextField();
+        userNameField.setPromptText("Enter your username");
+        Text passwordLabel = new Text("Password:");
+        passwordLabel.setFont(prodSansBig);
+        passwordLabel.setStyle("-fx-fill: #f9f9f9;"
+                + "-fx-font-size: 14pt;");
+        passwordField = new PasswordField();
+        passwordField.setPromptText("Enter your password");
+        
+        loginInfo.getChildren().addAll(userNameLabel, userNameField, passwordLabel, passwordField);
+        loginInfo.setRowIndex(userNameLabel, 0);
+        loginInfo.setRowIndex(userNameField, 0);
+        loginInfo.setRowIndex(passwordLabel, 1);
+        loginInfo.setRowIndex(passwordField, 1);
+        loginInfo.setColumnIndex(userNameLabel, 0);
+        loginInfo.setColumnIndex(userNameField, 1);
+        loginInfo.setColumnIndex(passwordLabel, 0);
+        loginInfo.setColumnIndex(passwordField, 1);
+        loginInfo.setAlignment(Pos.CENTER);
+        
+        HBox loginButtons = new HBox(8);
+        loginButton = new Button("Login");
+        loginButton.setOnAction(this);
+        closeButton = new Button("Exit");
+        closeButton.setOnAction(this);
+        loginButtons.getChildren().addAll(loginButton, closeButton);
+        loginButtons.setAlignment(Pos.CENTER);
+        VBox loginVBox = new VBox(8);
+        loginVBox.setPadding(new Insets(20));
+        loginVBox.setAlignment(Pos.TOP_CENTER);
+        loginVBox.getChildren().addAll(loginInfo, loginButtons);
+        loginMain.setCenter(loginVBox);
+        
+        loginMain.setStyle("-fx-border-radius: 10 10 10 10;"
+                + "-fx-background-radius: 10 10 10 10;"
+                + "-fx-background-color: #0f0f0f");
+        loginRoot.setPadding(new Insets(20));
+        loginRoot.setBackground(Background.EMPTY);
+        loginRoot.setCenter(loginWindowContent);
+    }
+    
+    public void login() {
+        String unameUsed = userNameField.getText();
+        String passUsed = passwordField.getText();
+        String hashedPass = hashPassword(passUsed);
+        
+        for (User user : users) {
+            if (user.getUsername().equals(unameUsed)) {
+                if (user.getHashedPass().equals(hashedPass)) {
+                    //signed in correctly
+                    BorderPane welcomePane = new BorderPane();
+                    welcomePane.setStyle("-fx-border-radius: 10 10 10 10;"
+                        + "-fx-background-radius: 10 10 10 10;"
+                        + "-fx-background-color: #f9f9f9");
+                    Text welcomeText = new Text("Welcome back, " + user.getName() + ".");
+                    welcomePane.setBackground(new Background(new BackgroundFill(Color.web("#f9f9f9"), CornerRadii.EMPTY, Insets.EMPTY)));
+                    welcomePane.setCenter(welcomeText);
+                    welcomeText.setFont(prodSansBig);
+                    FadeTransition welcomeFade = new FadeTransition(Duration.millis(1500), welcomePane);
+                    welcomeFade.setFromValue(0.0);
+                    welcomeFade.setToValue(1.0);
+                    PauseTransition pauseAfterLogin = new PauseTransition(Duration.millis(750));
+                    SequentialTransition welcomeTransition = new SequentialTransition(welcomeFade, pauseAfterLogin);
+                    welcomeTransition.setOnFinished((e) -> {
+                        if (user.getAccountType().equals("administrator")) {
+                            //do something for administrators
+                            System.out.println("welcome logged in as admin");
+                        } else if (user.getAccountType().equals("user")) {
+                            //do something for users
+                            primaryStage.close();
+                            showControlWindow();
+                            primaryStage.show();
+                            return;
+                        } else { 
+                            //account type unsupported
+                        }
+                    });
+                    welcomeTransition.play();
+                    loginWindowContent.getChildren().add(welcomePane);
+                    return;
+                } else {
+                    //wrong password used
+                    System.out.println("wrong pass");
+                    return;
+                }
+            }
+        }
+        
+        //username not found
+        System.out.println("bad username");
+    }
+    
+    public static void loadFile(String filename, ArrayList tempList ) {
+        String temp = "";
+        try {
+                BufferedReader file = new BufferedReader(new FileReader(filename));
+                while (file.ready()) {
+                temp = file.readLine();
+                String tempArray[] = temp.split(",");
+                
+                tempList.add(new User(tempArray[0], tempArray[1], tempArray[2], tempArray[3]));
+            }
+        } catch (IOException e) {
+            System.out.println(e);
+        }
+
+    }
+
+    public String hashPassword(String plaintext) {
+        
+        try {
+            String hashedPass = "";
+            
+            MessageDigest passwordDigest;
+            passwordDigest = MessageDigest.getInstance("SHA-256");
+            
+            byte[] hash = passwordDigest.digest(plaintext.getBytes(StandardCharsets.UTF_8));
+            
+            StringBuffer hexString = new StringBuffer();
+            for (int i = 0; i < hash.length; i++) {
+                String hex = Integer.toHexString(0xff & hash[i]);
+                if(hex.length() == 1) hexString.append('0');
+                hexString.append(hex);
+            }
+
+            return hexString.toString();
+            
+        } catch (NoSuchAlgorithmException e) {
+            return "Hashing Failed";
+        }
+        
     }
     
     public void close() {
