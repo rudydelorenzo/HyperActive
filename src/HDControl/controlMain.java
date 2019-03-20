@@ -23,6 +23,7 @@ import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.effect.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -1111,14 +1112,24 @@ public class controlMain extends Application implements EventHandler<ActionEvent
                     return;
                 } else {
                     //wrong password used
-                    System.out.println("wrong pass");
+                    Alert wrongPassAlert = new Alert(AlertType.ERROR);
+                    wrongPassAlert.setTitle("Login Error");
+                    wrongPassAlert.setHeaderText("Wrong Password");
+                    wrongPassAlert.setContentText("You entered the wrong password for the user \"" + user.getUsername() + "\".");
+
+                    wrongPassAlert.showAndWait();
+                    //System.out.println("wrong pass");
                     return;
                 }
             }
         }
         
-        //username not found
-        System.out.println("bad username");
+        Alert noUserAlert = new Alert(AlertType.INFORMATION);
+        noUserAlert.setTitle("Login Error");
+        noUserAlert.setHeaderText("Username Not Found");
+        noUserAlert.setContentText("The username you entered wasn't found. If you don't have your own username and password yet, ask an admin to create one for you!");
+
+        noUserAlert.showAndWait();
     }
     
     public static void loadFile(String filename, ArrayList tempList ) {
