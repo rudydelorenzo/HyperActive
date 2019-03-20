@@ -26,7 +26,6 @@ import javafx.scene.control.*;
 import javafx.scene.effect.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
@@ -40,10 +39,10 @@ import javafx.util.StringConverter;
 
 public class controlMain extends Application implements EventHandler<ActionEvent>, RefreshListener {
     
-    public static final String version = "0.0.6a";
+    public static final String version = "0.0.9a";
     public static Stage primaryStage;
     public static Socket client;
-    public static Scene mainScene;
+    public static Scene mainControlScene, mainLoginScene, mainNewUserScene;
     public static InetAddress ip;
     public static ArrayList<Hyperdeck> hyperdecks = new ArrayList();
     public static ArrayList<User> users = new ArrayList();
@@ -65,7 +64,7 @@ public class controlMain extends Application implements EventHandler<ActionEvent
     public static Image iconImg, smallIconImg, searchImg, clearImg, loginLogoImg;
     public static Button s1Button, s2Button, recallButton, saveButton, editButton, deleteButton, clearButton, recordButton, stopButton, playButton, nextClip, prevClip, fwdButton, revButton, custom1Button, custom2Button, addHDButton;
     public static Button spd25, spd50, spd75, spd100, spd200, spd800, spd1600, searchButton, clearSearchButton;
-    public static Button loginButton, closeButton;
+    public static Button loginButton, closeButton, newUserButton, logoutButton;
     public static ToggleButton starToggle, reverseToggle, fwdToggle, starFilterToggle;
     public static ObservableList<ReplayIdentifier> replaysList= FXCollections.observableArrayList();
     public static ObservableList<ReplayIdentifier> foundList= FXCollections.observableArrayList();
@@ -77,10 +76,11 @@ public class controlMain extends Application implements EventHandler<ActionEvent
     public static HBox decorButtons;
     public static BorderPane root = new BorderPane();
     public static BorderPane loginRoot = new BorderPane();
+    public static BorderPane newUserRoot = new BorderPane();
     public static Slider speedSlider;
     public static TextField searchField;
-    public static TextField userNameField;
-    public static PasswordField passwordField;
+    public static TextField userNameField, newUserNameField, newUserRealNameField, newUserTypeField;
+    public static PasswordField passwordField, newUserPasswordField;
     public static StackPane loginWindowContent = new StackPane();
     
     public static void main(String[] args) {
@@ -136,18 +136,33 @@ public class controlMain extends Application implements EventHandler<ActionEvent
         primaryStage.setTitle("HyperActive " + version);
         primaryStage.getIcons().add(iconImg);
         makeControlUI();
-        mainScene = new Scene(root, 1600, 900);
-        mainScene.setFill(Color.TRANSPARENT);
-        primaryStage.setScene(mainScene);
+        if (mainControlScene == null) {
+            mainControlScene = new Scene(root, 1600, 900);
+            mainControlScene.setFill(Color.TRANSPARENT);
+        }
+        primaryStage.setScene(mainControlScene);
     }
     
     public void showLoginWindow() {
-        primaryStage.setTitle("HyperActive " + version + " | Login");
+        primaryStage.setTitle("Login | HyperActive " + version);
         primaryStage.getIcons().add(iconImg);
         makeLoginUI();
-        mainScene = new Scene(loginRoot, 700, 300);
-        mainScene.setFill(Color.TRANSPARENT);
-        primaryStage.setScene(mainScene);
+        if (mainLoginScene == null) {
+            mainLoginScene = new Scene(loginRoot, 700, 300);
+            mainLoginScene.setFill(Color.TRANSPARENT);
+        }
+        primaryStage.setScene(mainLoginScene);
+    }
+    
+    public void showNewUserWindow() {
+        primaryStage.setTitle("New user | HyperActive " + version);
+        primaryStage.getIcons().add(iconImg);
+        makeNewUserUI();
+        if (mainNewUserScene == null) {
+            mainNewUserScene = new Scene(newUserRoot, 400, 300);
+            mainNewUserScene.setFill(Color.TRANSPARENT);
+        }
+        primaryStage.setScene(mainNewUserScene);
     }
     
     @Override
@@ -174,6 +189,8 @@ public class controlMain extends Application implements EventHandler<ActionEvent
         else if (event.getSource() == spd200) shuttleSpeed(200);
         else if (event.getSource() == spd800) shuttleSpeed(800);
         else if (event.getSource() == spd1600) shuttleSpeed(1600);
+        else if (event.getSource() == newUserButton) createNewUser();
+        else if (event.getSource() == logoutButton) logout();
         else if (event.getSource() == starFilterToggle) {
             if (starFilterToggle.isSelected()) {
                 foundList.clear();
@@ -1023,6 +1040,25 @@ public class controlMain extends Application implements EventHandler<ActionEvent
         loginVBox.getChildren().addAll(loginInfo, loginButtons);
         loginMain.setCenter(loginVBox);
         
+        
+        loginRoot.setOnMousePressed(new EventHandler<MouseEvent>() {
+            @Override
+            public void handle(MouseEvent event) {
+                xOffset = event.getSceneX();
+                yOffset = event.getSceneY();
+            }
+        });
+        loginRoot.setOnMouseDragged(new EventHandler<MouseEvent>() {
+            @Override
+            public void handle(MouseEvent event) {
+                if (primaryStage.maximizedProperty().getValue() == false) {
+                    primaryStage.setX(event.getScreenX() - xOffset);
+                    primaryStage.setY(event.getScreenY() - yOffset);
+                }
+                
+            }
+        });
+        
         loginMain.setStyle("-fx-border-radius: 10 10 10 10;"
                 + "-fx-background-radius: 10 10 10 10;"
                 + "-fx-background-color: #0f0f0f");
@@ -1056,7 +1092,10 @@ public class controlMain extends Application implements EventHandler<ActionEvent
                     welcomeTransition.setOnFinished((e) -> {
                         if (user.getAccountType().equals("administrator")) {
                             //do something for administrators
-                            System.out.println("welcome logged in as admin");
+                            primaryStage.close();
+                            showNewUserWindow();
+                            primaryStage.show();
+                            return;
                         } else if (user.getAccountType().equals("user")) {
                             //do something for users
                             primaryStage.close();
@@ -1120,7 +1159,141 @@ public class controlMain extends Application implements EventHandler<ActionEvent
         } catch (NoSuchAlgorithmException e) {
             return "Hashing Failed";
         }
+    }
+    
+    public void makeNewUserUI() {
+        BorderPane newUserMain = new BorderPane();
         
+        GridPane decorations = new GridPane();
+        decorations.setId("decorations");
+        decorations.getStylesheets().add("/CSS/decorationsStylingCSS.css");
+        ImageView ivDecor = new ImageView(decorImg);
+        ivDecor.setPreserveRatio(true);
+        ivDecor.setFitHeight(20);
+        ImageView ivLogo = new ImageView(smallIconImg);
+        ivLogo.setPreserveRatio(true);
+        ivLogo.setFitHeight(20);
+        HBox decorImgHolder = new HBox(10);
+        decorImgHolder.getChildren().add(ivLogo);
+        decorImgHolder.getChildren().add(ivDecor);
+        decorImgHolder.setAlignment(Pos.CENTER);
+        decorations.add(decorImgHolder,0,0);
+        decorations.setAlignment(Pos.CENTER);
+        newUserMain.setTop(decorations);
+        newUserMain.setStyle("-fx-background-color: transparent; -fx-padding: 20px");
+        newUserMain.setEffect(dropShadow);
+        
+        Text newUserName = new Text("Username:");
+        newUserName.setFont(prodSansBig);
+        newUserName.setStyle("-fx-fill: #212121;"
+                + "-fx-font-size: 14pt;");
+        newUserNameField = new TextField();
+        newUserNameField.setPromptText("Enter new username");
+        Text newUserRealName = new Text("Name:");
+        newUserRealName.setFont(prodSansBig);
+        newUserRealName.setStyle("-fx-fill: #212121;"
+                + "-fx-font-size: 14pt;");
+        newUserRealNameField = new TextField();
+        newUserRealNameField.setPromptText("Enter new user's real name");
+        Text newUserPassword = new Text("Password:");
+        newUserPassword.setFont(prodSansBig);
+        newUserPassword.setStyle("-fx-fill: #212121;"
+                + "-fx-font-size: 14pt;");
+        newUserPasswordField = new PasswordField();
+        newUserPasswordField.setPromptText("Enter new password");
+        Text newUserType = new Text("Privileges:");
+        newUserType.setFont(prodSansBig);
+        newUserType.setStyle("-fx-fill: #212121;"
+                + "-fx-font-size: 14pt;");
+        newUserTypeField = new TextField();
+        newUserTypeField.setPromptText("User/Administrator");
+        
+        GridPane newUserStuff = new GridPane();
+        newUserStuff.setAlignment(Pos.CENTER);
+        newUserStuff.setPadding(new Insets(8));
+        newUserStuff.setHgap(10);
+        newUserStuff.setVgap(7);
+        //column row        
+        newUserStuff.add(newUserName, 0,0);
+        newUserStuff.add(newUserNameField, 1,0);
+        newUserStuff.add(newUserRealName, 0, 1);
+        newUserStuff.add(newUserRealNameField, 1, 1);
+        newUserStuff.add(newUserPassword, 0, 2);
+        newUserStuff.add(newUserPasswordField, 1, 2);
+        newUserStuff.add(newUserType, 0, 3);
+        newUserStuff.add(newUserTypeField, 1, 3);
+        
+        newUserButton = new Button("Create User");
+        newUserButton.setOnAction(this);
+        logoutButton = new Button("Logout");
+        logoutButton.setOnAction(this);
+        HBox newUserButtons = new HBox(8);
+        newUserButtons.setAlignment(Pos.CENTER);
+        newUserButtons.getChildren().addAll(logoutButton, newUserButton);
+        VBox newUserContent = new VBox(10);
+        newUserContent.getChildren().addAll(newUserStuff, newUserButtons);
+        newUserContent.setAlignment(Pos.CENTER);
+        
+        newUserContent.setStyle("-fx-border-radius: 0 0 10 10;"
+                + "-fx-background-radius: 0 0 10 10;"
+                + "-fx-background-color : #f9f9f9;");
+        newUserMain.setCenter(newUserContent);
+        
+        decorations.setOnMousePressed(new EventHandler<MouseEvent>() {
+            @Override
+            public void handle(MouseEvent event) {
+                xOffset = event.getSceneX();
+                yOffset = event.getSceneY();
+            }
+        });
+        decorations.setOnMouseDragged(new EventHandler<MouseEvent>() {
+            @Override
+            public void handle(MouseEvent event) {
+                if (primaryStage.maximizedProperty().getValue() == false) {
+                    primaryStage.setX(event.getScreenX() - xOffset);
+                    primaryStage.setY(event.getScreenY() - yOffset);
+                }
+                
+            }
+        });
+        
+        newUserRoot.setPadding(new Insets(5));
+        newUserRoot.setBackground(Background.EMPTY);
+        newUserRoot.setCenter(newUserMain);
+    }
+    
+    public void createNewUser() {
+        users.add(new User(newUserNameField.getText(), newUserRealNameField.getText(), hashPassword(newUserPasswordField.getText()), newUserTypeField.getText()));
+        saveFile("logins.csv", users);
+        loadFile("logins.csv", users);
+        logout();
+    }
+    
+    public static void saveFile(String filename, ArrayList <User> tempList ) {
+        try {
+            PrintWriter file = new PrintWriter(new FileWriter(filename));
+
+            for (int i = 0; i < tempList.size(); i++) {
+                String toSave = "";
+                toSave = tempList.get(i).getUsername();
+                toSave +="," + tempList.get(i).getName();
+                toSave += "," + tempList.get(i).getHashedPass();
+                toSave +="," + tempList.get(i).getAccountType();
+                
+                file.println(toSave);
+            }
+            file.close();
+        } catch (IOException ex) {
+            System.out.println(ex.toString());
+        }
+
+    }//end saveFile
+
+    
+    public void logout() {
+        primaryStage.close();
+        showLoginWindow();
+        primaryStage.show();
     }
     
     public void close() {
