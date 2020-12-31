@@ -1,4 +1,5 @@
-# HyperActive
+![Logo](/src/images/decoration.png)
+# Welcome to HyperActive
 Utility for synchronized control of Blackmagic's HyperDeck line.
 
 ## TODO:
